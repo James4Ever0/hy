@@ -61,8 +61,8 @@ def loader_module_obj(loader):
 
 
 def _hy_code_from_file(filename, loader_type=None):
-    print("LOADING HY CODE FROM FILE", filename)
-    print("LOADER:", loader_type) #hyloader? what is hy loader?
+    print("LOADING HY CODE FROM FILE", filename, file=sys.stderr)
+    print("LOADER:", loader_type, file=sys.stderr) #hyloader? what is hy loader?
     # damn. is imporing from file possible?
     # print('loading file:', filename)
     # it is not loading module.
@@ -70,7 +70,7 @@ def _hy_code_from_file(filename, loader_type=None):
     full_fname = os.path.abspath(filename)
     fname_path, fname_file = os.path.split(full_fname)
     modname = os.path.splitext(fname_file)[0]
-    print("MODNAME: ", modname)
+    print("MODNAME: ", modname, file=sys.stderr)
     sys.path.insert(0, fname_path)
     try:
         if loader_type is None:
@@ -78,7 +78,7 @@ def _hy_code_from_file(filename, loader_type=None):
         else:
             loader = loader_type(modname, full_fname) # excuse me what the fuck is this loader?
         code = loader.get_code(modname) # how do you get code without being parsed first? there is expression.
-        print("LOADED CODE:", code) # this is the code object. probably compiled.
+        print("LOADED CODE:", code, file=sys.stderr) # this is the code object. probably compiled.
     finally:
         sys.path.pop(0)
 
@@ -86,7 +86,7 @@ def _hy_code_from_file(filename, loader_type=None):
 
 
 def _get_code_from_file(run_name, fname=None, hy_src_check=lambda x: x.endswith(".hy")):
-    print("GET CODE FROM FILE:", run_name, fname)
+    print("GET CODE FROM FILE:", run_name, fname, file=sys.stderr)
     # where do you import another hy file?
     # print('are you running get code from file?', run_name) # frame is called __main__
     # print('filename',fname)
@@ -142,7 +142,7 @@ def _could_be_hy_src(filename):
 def _hy_source_to_code(self, data, path, _optimize=-1):
     # shit. are you sure this will work?
     # import python libraries? binary librarires? builtin? stub files?
-    print("_HY_SOURCE_TO_CODE:", data, path)
+    print("_HY_SOURCE_TO_CODE:", data, path, file=sys.stderr)
     # seems working flawlessly, but without access to source code.
     # data is binary string from some source file.
     # if this shit goes wrong, better reload the file from disk?
@@ -166,8 +166,8 @@ def _hy_source_to_code(self, data, path, _optimize=-1):
         with loader_module_obj(self) as module:
             # transform hy_tree here? where the fuck the hy_tree is coming from?
             data = hy_compile(hy_tree, module) # this compile can go wrong. or not?
-            print("HY COMPILED DATA:") # this is ast module object.
-            print(data)
+            print("HY COMPILED DATA:", file=sys.stderr) # this is ast module object.
+            print(data, file=sys.stderr)
 
     return _py_source_to_code(self, data, path, _optimize=_optimize)
 
@@ -204,11 +204,11 @@ def retryLoading(func):
                 return func(*args, **kwargs)
             except:
                 import traceback
-                traceback.print_exc(limit=1)# that is for most recent call last.
+                traceback.print_exc(limit=1, file=sys.stderr)# that is for most recent call last.
                 # not closed?
                 val =[kwargs.get('fname', None), args[1]]
-                print("VAL: ", val)
-                print(args, kwargs)
+                print("VAL: ", val, file=sys.stderr)
+                print(args, kwargs, file=sys.stderr)
                 v = None
                 for v in val:
                     if v not in [None, ""]:
