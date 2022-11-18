@@ -227,9 +227,29 @@ class HyReader(Reader):
                 # but it did not return to us. there's no model conversion.
                 # import sys
                 # print('generating model:', model, type(model),file=sys.stderr)
-                # if type(model) == hy.models.Expression: # maybe this is not right.
+                # maybe you should not wrap things inside list or tuple, or you should?
+                # what to do when you meets tuple, dict, list?
+                # you shall not do anything about that. only if it hits toplevel.
+                # because these data structures may fuck up, hidden inside some normal expressions.
+                import hy.models
+                from hy.debugger import checkAuthenticTryExcept
+                if type(model) == hy.models.Expression: # maybe this is not right.
                 # you should not use this macro here.
                     # model = myTryExceptMacro(model)
+                    # describe this model.
+                    # try_except_check
+                    # you may need to check if you are inside this thing.
+                    # check start and end.
+                    sig_try, sig_authentic = checkAuthenticTryExcept(model)
+                    if sig_try:
+                        if not sig_authentic:
+                            modelInfos = {"start":(model.start_line,
+                            model.start_column),"end":
+                            (model.end_line,
+                            model.end_column)}
+                            # we need to record this shit.
+                            # but we record the outmost layer only?
+                            # we need to merge try-except ranges?
                     # you should not enable this mode.
                     # write a test first.
                     # print('altered model with try except:',model, file=sys.stderr)

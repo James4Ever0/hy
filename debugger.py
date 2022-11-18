@@ -2,6 +2,18 @@ import hy.models
 
 from hy.models import Symbol as S, Expression as E, List as L, String as STR
 
+def checkAuthenticTryExcept(myExpression, signature='mySignature'):
+    sig_try, sig_authentic = False, False
+    if type(myExpression) == E:
+        try:
+            sig_try = myExpression[0][0] == S('try')
+            valSignature = myExpression[2][2]
+            if valSignature == STR(signature):
+                sig_authentic = True
+        except:
+            pass
+    return sig_try, sig_authentic
+
 def myTryExceptMacro(myExpression, signature='mySignature',checkExpression=False, 
 # skipAssertions = False
 topLevel=False, #indicate this is toplevel try-except. no more reprievment. # you may rewrap this thing.
@@ -12,13 +24,9 @@ skipAssertions=True ,# to make it right?
     # test if this is the damn thing.
     # this is expression in deed.
     if checkExpression:
-        if type(myExpression) == E:
-            try:
-                valSignature = myExpression[2][2]
-                if valSignature == STR(signature):
-                    return myExpression
-            except:
-                pass
+        sigs = checkAuthenticTryExcept(myExpression, signature=signature)
+        if all(sigs):
+            return myExpression
     try:
         valfirst = myExpression[0]
         testskip = (valfirst == S('except') or valfirst == S('finally')) or ((valfirst == S('assert')) if skipAssertions else False)
