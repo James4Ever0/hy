@@ -219,16 +219,19 @@ class HyReader(Reader):
             # this is recursive only for expressions, not for standalone symbols.
             # damn why should i call symbols alone? i wonder. it may still generate special shits. for example the damn plus sign. maybe some 'eval' will be better to replace this kind of shit?
             # can list be expression?
-            import hy.models
-            from hy.debugger import myTryExceptMacro
+            # import hy.models
+            # from hy.debugger import myTryExceptMacro
             # you may wonder.
             if model is not None:
                 # maybe you can hook this. if returned 
                 # but it did not return to us. there's no model conversion.
                 # import sys
                 # print('generating model:', model, type(model),file=sys.stderr)
-                if type(model) == hy.models.Expression:
-                    model = myTryExceptMacro(model)
+                # if type(model) == hy.models.Expression: # maybe this is not right.
+                # you should not use this macro here.
+                    # model = myTryExceptMacro(model)
+                    # you should not enable this mode.
+                    # write a test first.
                     # print('altered model with try except:',model, file=sys.stderr)
                 # hook it damn it!
                 # hy.models.Symbol
@@ -258,6 +261,7 @@ class HyReader(Reader):
         comment = self.chars(eof_ok=True)
         # lcomment = list(comment)
         lcomment = []
+        mpos_before = self._pos
         # any(c == "\n" for c in comment)
         for elem in comment:
             if elem == "\n":
@@ -266,7 +270,15 @@ class HyReader(Reader):
         # read till the newline.
         # print("LCOMMENT", lcomment) # use stderr instead.
         # this is the damn thing.
-        self.comments_line.append(";"+"".join(lcomment))
+        # mpos_after = self._pos
+        mcomment = ";"+"".join(lcomment)
+        # print("____")
+        # print("BEFORE:",mpos_before) # this is the thing you want the most.
+        # print("AFTER:", mpos_after)
+        # print("COMMENT?",[mcomment])
+        # it does not matter so much for the mpos_after.
+        self.comments_start.append(mpos_before)
+        self.comments_line.append(mcomment)
 
         return None
 

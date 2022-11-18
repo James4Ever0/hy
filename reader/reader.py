@@ -65,6 +65,7 @@ class Reader(metaclass=ReaderMeta):
         self._source = None
         self._filename = None
         self.comments_line = [] # this is for reserved use.
+        self.comments_start = []
 
         self.ends_ident = set(self.NON_IDENT)
         self.reader_table = self.DEFAULT_TABLE.copy()
@@ -80,7 +81,7 @@ class Reader(metaclass=ReaderMeta):
             self._stream = stream
             self._peek_chars = deque()
             self._saved_chars = []
-            self._pos = (1, 0)
+            self._pos = (1, 0) # we need this information! what the hell does that mean?
             self._eof_tracker = self._pos
 
     @property

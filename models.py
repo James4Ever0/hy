@@ -663,10 +663,14 @@ class Lazy(Object):
             # print("TYPE OF FORM:", type(elem), file=sys.stderr)
             # you only prevent shit from here. you need to prevent shit from 
             # if type(elem) != Expression: #wrap every shit into try-except?
-            if self.protect_toplevel:
-                elem = myTryExceptMacro(elem, checkExpression=True, skipAssertions=False) # will wrap everything.
-            # print("FINAL FORM:", elem, file=sys.stderr)
+            # how to forgive code inside try...except?
+            # you shall preprocess this shit. for debugging, let's stop using protect_toplevel
 
+            # analyze this shit again. PLEASE?
+
+            # if self.protect_toplevel:
+            #     elem = myTryExceptMacro(elem, checkExpression=True, skipAssertions=False) # will wrap everything.
+            # print("FINAL FORM:", elem, file=sys.stderr)
             yield elem
         # yield from self._gen
 
