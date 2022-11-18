@@ -225,10 +225,11 @@ class HyReader(Reader):
             if model is not None:
                 # maybe you can hook this. if returned 
                 # but it did not return to us. there's no model conversion.
-                print('generating model:', model, type(model))
+                # import sys
+                # print('generating model:', model, type(model),file=sys.stderr)
                 if type(model) == hy.models.Expression:
                     model = myTryExceptMacro(model)
-                    print('altered model with try except:',model)
+                    # print('altered model with try except:',model, file=sys.stderr)
                 # hook it damn it!
                 # hy.models.Symbol
                 # hy.models.Expression
@@ -254,7 +255,19 @@ class HyReader(Reader):
 
     @reader_for(";")
     def line_comment(self, _):
-        any(c == "\n" for c in self.chars(eof_ok=True))
+        comment = self.chars(eof_ok=True)
+        # lcomment = list(comment)
+        lcomment = []
+        # any(c == "\n" for c in comment)
+        for elem in comment:
+            if elem == "\n":
+                break
+            lcomment.append(elem)
+        # read till the newline.
+        # print("LCOMMENT", lcomment) # use stderr instead.
+        # this is the damn thing.
+        self.comments_line.append(";"+"".join(lcomment))
+
         return None
 
     @reader_for(":")

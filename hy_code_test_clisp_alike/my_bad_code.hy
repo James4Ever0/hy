@@ -2,7 +2,7 @@
 (print "about to import")
 (raise (Exception "CAN TURNED INTO SOME CODE OBJECT?")) ;; 
 ;; you can even fail when import.
-(print "IMPORT RESULT?" (import bad_py [badfunction]) );; this is the "from...import..." syntax.
+(print "IMPORT ; RESULT?" (import bad_py [badfunction]) );; this is the "from...import..." syntax.
 ;; it should raise exception really. but it does not.
 ;; but this is the statement to be blamed. you can import it otherwise.
 ; a is not defined.

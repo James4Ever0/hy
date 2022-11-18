@@ -64,6 +64,7 @@ class Reader(metaclass=ReaderMeta):
     def __init__(self):
         self._source = None
         self._filename = None
+        self.comments_line = [] # this is for reserved use.
 
         self.ends_ident = set(self.NON_IDENT)
         self.reader_table = self.DEFAULT_TABLE.copy()
