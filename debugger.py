@@ -7,7 +7,7 @@ def checkAuthenticTryExcept(myExpression, signature="mySignature"):
     sig_try, sig_authentic = False, False
     if type(myExpression) == E:
         try:
-            sig_try = myExpression[0][0] == S("try")
+            sig_try = myExpression[0] == S("try")
             valSignature = myExpression[-1][2]  # the last expression! fuck.
             if valSignature == STR(signature):
                 sig_authentic = True

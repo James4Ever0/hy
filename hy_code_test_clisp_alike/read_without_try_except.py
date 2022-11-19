@@ -1,4 +1,5 @@
-src = "no_wrapping_under_try_except.hy"
+#src = "no_wrapping_under_try_except.hy"
+src='simp.hy'
 
 from hy.reader import HyReader
 # from hy.compiler import hy_eval
