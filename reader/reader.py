@@ -61,16 +61,19 @@ class Reader(metaclass=ReaderMeta):
             position of the source being read.
     """
 
-    def __init__(self):
+    def __init__(self, temaps:dict={}):
         self._source = None
         self._filename = None
+        self.temaps = temaps # if with empty temaps, you need to create tryexcept_ranges. or if with some magic flag you need not to create tryexcept_ranges. -> temaps == None
         self.comments_line = [] # this is for reserved use.
         self.comments_start = []
+        self.tryexcept_ranges = [] # this shall be stored per form basis, so we have best performance.
+        self.counter = 0
 
         self.ends_ident = set(self.NON_IDENT)
         self.reader_table = self.DEFAULT_TABLE.copy()
 
-    def _set_source(self, stream=None, filename=None):
+    def _set_source(self, stream=None, filename=None): # this is initialization.
         if filename is not None:
             self._filename = filename
         if stream is not None:

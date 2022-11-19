@@ -233,26 +233,101 @@ class HyReader(Reader):
                 # because these data structures may fuck up, hidden inside some normal expressions.
                 import hy.models
                 from hy.debugger import checkAuthenticTryExcept
-                if type(model) == hy.models.Expression: # maybe this is not right.
-                # you should not use this macro here.
-                    # model = myTryExceptMacro(model)
-                    # describe this model.
-                    # try_except_check
-                    # you may need to check if you are inside this thing.
-                    # check start and end.
-                    sig_try, sig_authentic = checkAuthenticTryExcept(model)
-                    if sig_try:
-                        if not sig_authentic:
-                            modelInfos = {"start":(model.start_line,
+                from hy.utils import (my_max, my_min, my_a_greater_than_b, 
+                my_a_within_b # not identical! not overlap! but within!
+                )
+                if type(self.temaps) == dict: # if set to None, no shit is done.
+                    if type(model) == hy.models.Expression: # maybe this is not right.
+                    # you should not use this macro here.
+                        # model = myTryExceptMacro(model)
+                        # describe this model.
+                        # try_except_check
+                        # you may need to check if you are inside this thing.
+                        # check start and end.
+                        sig_try, sig_authentic = checkAuthenticTryExcept(model)
+                        if self.temaps == {}: # if not empty or None, we do not do shit.
+                            if sig_try:
+                                if not sig_authentic:
+                                    modelInfos = {"start":(model.start_line,
                             model.start_column),"end":
                             (model.end_line,
                             model.end_column)}
-                            # we need to record this shit.
-                            # but we record the outmost layer only?
-                            # we need to merge try-except ranges?
-                    # you should not enable this mode.
-                    # write a test first.
-                    # print('altered model with try except:',model, file=sys.stderr)
+                                    # you should merge it in some sort.
+                                    # sort the thing, merge one by one.
+                                    hasMerge = False
+                                    getFlat = lambda x: ((x['start'][0], x['start'][1]), (x['end'][0], x['end'][1]))
+                                    insertionPoint = 0
+                                    deleteIndexs = []
+                                    for index, mrange in (self.tryexcept_ranges):
+                                        # merge? continue searching for potential merges in sorted array.
+                                        mls, mle =getFlat(mrange)
+                                        cls, cle = getFlat(modelInfos)
+                                        # compare min or max.
+                                        commonls = my_max(mls, cls)
+                                        commonle = my_min(mle, cle)
+                                        needMerge = my_a_greater_than_b(commonle, commonls)
+                                        # how to merge?
+                                        # must have some common things, otherwise we do not merge.
+                                        if not hasMerge:
+                                            if needMerge:
+                                                hasMerge = True
+                                        if needMerge:
+                                            # now implement these shits.
+                                            mergels = my_min(mls, cls)
+                                            mergele = my_max(mle, cle)
+                                            # this is the damn shit.
+                                            deleteIndexs.append(index)
+                                            insertionPoint = index
+                                            modelInfos = {"start":mergels, "end":mergele}
+
+                                    # not merge? store separately, sort it!
+                                    if not hasMerge:
+                                        self.tryexcept_ranges.append(modelInfos)
+                                        # you need to sort it somehow.
+                                        self.tryexcept_ranges.sort(key=lambda x: x['start'][0]*500+x['start'][1]) # well there might be some loophole. shit.
+                                    else:
+                                        # first mark as "None" at all deleted indexs.
+                                        for index in deleteIndexs:
+                                            self.tryexcept_ranges[index] = None
+                                        # insert at the insertion point.
+                                        self.tryexcept_ranges[insertionPoint]= modelInfos
+                                        # remove all None values.
+                                        self.tryexcept_ranges = [x for x in self.tryexcept_ranges if x is not None]
+                                # we need to record this shit.
+                                # but we record the outmost layer only?
+                                # we need to merge try-except ranges?
+                        else:
+                            # if not authentic, not rewrapping.
+                            if sig_try and sig_authentic:
+                                ...
+                            else: # check if within other big try_except blocks, refuse to produce this signal only from sig_try and sig_authentic
+                                modelInfos = {"start":(model.start_line,
+                            model.start_column),"end":
+                            (model.end_line,
+                            model.end_column)}
+                                mtryexcept_ranges = self.temaps.get(self.counter,[])
+                                # check if there's at least one within these try-except ranges.
+                                withinTryExcept=False
+                                # this is some expression. be warned!
+                                for mtryexcept_range in mtryexcept_ranges:
+                                    # do something you bitch!
+                                    # how the fuck do we know which expression we are at?
+                                    # pass the counter please!
+                                    signal = my_a_within_b(modelInfos,mtryexcept_ranges)
+                                    if signal:
+                                        withinTryExcept = True
+                                        break
+                                if withinTryExcept:
+                                    # do not do shit. do not wrap this expression around anything.
+                                    ...
+                                else:
+                                    # wrap it!
+                                    from hy.debugger import myTryExceptMacro
+                                    model = myTryExceptMacro(model)
+                                    # you may need to fucking analyze this shit first?
+                        # you should not enable this mode.
+                        # write a test first.
+                        # print('altered model with try except:',model, file=sys.stderr)
                 # hook it damn it!
                 # hy.models.Symbol
                 # hy.models.Expression

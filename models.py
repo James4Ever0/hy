@@ -649,43 +649,55 @@ class Lazy(Object):
     form, is necessary to handle reader macros correctly; see :hy:func:`hy.read-many`.
     """
 
-    def __init__(self, gen,stream=None,filename=None,skip_shebang=False, protect_toplevel=True):
+    def __init__(self, gen,stream=None,filename=None,skip_shebang=False, protect_toplevel=True, temaps = {}):
         super().__init__()
         self._gen1 = gen
         # you may need three generators.
         # you may obtain the same shit.
         self.stream=stream
         self.filename=filename
-        self.temaps={}
+        self.temaps=temaps # setting it to None will disable tryexcept protection in fine-grained level. not recommended though.
         self.skip_shebang=skip_shebang
-        #do it here?
-        pos=stream.tell()
-        self.source=stream.read()
-        #are we skipping shebang?
-        # if shebang is skipped, we don't take care of that, shall we?
-        #anyway, the position is just the same.
-        stream.seek(pos)
-        from io import StringIO
-        self.mstream=StringIO(self.source)
-        from hy.reader import HyReader
+
         # get the try-except ranges right fucking here.
-        cnt=0
-        while True:
-            #maybe you just cannot raise exception before iteration? maybe you are just unsure about the shit it will do?
-            try:
-                form=next(self._gen1)
-                #form=next(self.mgen)
-                tryexcept_ranges=self.mreader.tryexcept_ranges
-                #and you should do copy that.
-                self.temaps.update({cnt:tryexcept_ranges.copy()})
-                self.mreader.tryexcept_ranges=[]
-                cnt+=1
-            except:
-                break
-        # you shall generate all things according till error for this mgen to fetch all sort of things.
-        # can you assure that? does that fucking work?
-        self.mreader=HyReader(temaps=self.temaps)
-        self._gen=self.mreader.parse(self.mstream,self.filename)
+        if self.temaps == {}:
+            #do it here?
+            pos=stream.tell()
+            self.source=stream.read()
+            #are we skipping shebang?
+            # if shebang is skipped, we don't take care of that, shall we?
+            #anyway, the position is just the same.
+            stream.seek(pos)
+            from io import StringIO
+            self.mstream=StringIO(self.source)
+            self.mstream2 = StringIO(self.source)
+            from hy.reader import HyReader
+            cnt=0
+            self.mreader2 = HyReader()
+            self._gen2 = self.mreader2.parse(stream = self.mstream2, filename = self.filename)
+            while True:
+                #maybe you just cannot raise exception before iteration? maybe you are just unsure about the shit it will do?
+                try:
+                    form=next(self._gen2) # but you cannot get it at the first place. you may have a second try.
+                    # we don't take care of this form.
+                    #form=next(self.mgen)
+                    tryexcept_ranges=self.mreader2.tryexcept_ranges
+                    #and you should do copy that.
+                    self.temaps.update({cnt:tryexcept_ranges.copy()}) # are you sure you want to update?
+                    self.mreader2.tryexcept_ranges=[]
+                    cnt+=1
+                except:
+                    break
+            # you shall generate all things according till error for this mgen to fetch all sort of things.
+            # can you assure that? does that fucking work?
+            self.mreader=HyReader(temaps=self.temaps)
+            self._gen=self.mreader.parse(self.mstream,self.filename)
+        else:
+            self.mreader = None
+            self._gen = self._gen1
+        # handle expressions differently?
+        # see if the symbol is located somewhere in this namespace. see if there's chance to reload the definition of the damn symbol.
+        # but most importantly, the damn repl shall be brought here.
 
         # this gen is the reader object. damn.
         # how to obtain this shit twice? copy the source code in first place? right fucking here?
@@ -714,8 +726,16 @@ class Lazy(Object):
             # print("FINAL FORM:", elem, file=sys.stderr)
             yield elem
             # and do something afterwards?
-            self.counter+=1
+            if self.mreader:
+                self.counter+=1
+                self.mreader.counter+=1
         # yield from self._gen
 
     def __next__(self):
-        return self._gen.__next__()
+        ## what is this shitty next?
+        elem = self._gen.__next__()
+
+        if self.mreader:
+            self.counter+=1
+            self.mreader.counter+=1
+        return elem
