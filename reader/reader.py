@@ -75,6 +75,7 @@ class Reader(metaclass=ReaderMeta):
             self._filename = filename
         if stream is not None:
             pos = stream.tell()
+            # you have source now?
             self._source = stream.read()
             stream.seek(pos)
 

@@ -32,6 +32,7 @@ def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
     pos = stream.tell()
     if skip_shebang:
         if stream.read(2) == "#!":
+            # automatically skipping shebang?
             stream.readline()
             pos = stream.tell()
         else:
@@ -41,7 +42,7 @@ def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
     # warning, this is the damn parser.
     # how to generate code from this shit?
 
-    m = hy.models.Lazy((reader or HyReader()).parse(stream, filename))
+    m = hy.models.Lazy((reader or HyReader()).parse(stream, filename),stream=stream,filename=filename,skip_shebang=skip_shebang)
     m.source = source # how is this done? applied source and filename?
     m.filename = filename
     return m
