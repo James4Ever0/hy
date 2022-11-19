@@ -329,6 +329,15 @@ class HyReader(Reader):
                                     "end": (model.end_line, model.end_column),
                                 }
                                 mtryexcept_ranges = self.temaps.get(self.counter, [])
+                                showinfo=False
+                                if showinfo:
+                                    print('....')
+                                    print('mcounter')
+                                    print(self.counter)
+                                    print('mtryexcept_ranges')
+                                    print(mtryexcept_ranges)
+                                    print('modelinfo')
+                                    print(modelInfos)
                                 # check if there's at least one within these try-except ranges.
                                 withinTryExcept = False
                                 # this is some expression. be warned!

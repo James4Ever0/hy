@@ -32,8 +32,8 @@ def my_a_within_b(a, b):
         return False
     a_s, a_e = a["start"], a["end"]
     b_s, b_e = b["start"], b["end"]
-    if a_s == b_s or a_e == b_e:
+    if a_s == b_s and a_e == b_e:
         return False
-    c_s, c_e = my_min(a_s, b_s), my_max(a_e, b_e)
+    c_s, c_e = my_max(a_s, b_s), my_min(a_e, b_e)
     signal = (c_s == a_s) and (c_e == a_e)
     return signal
