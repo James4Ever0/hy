@@ -143,7 +143,7 @@ class HyReader(Reader):
         setattr(hy, rname, self)
 
         try:
-            yield from self.parse_forms_until("") # this is it?
+            yield from self.parse_forms_until("")  # this is it?
         finally:
             if old_reader is None:
                 delattr(hy, rname)
@@ -212,7 +212,7 @@ class HyReader(Reader):
             self.slurp_space()
             if self.peek_and_getc(closer):
                 break
-            model = self.try_parse_one_form() # shall you pass some argument here.
+            model = self.try_parse_one_form()  # shall you pass some argument here.
             # here's our own macro. developed somewhere from here.
             # syntatically illegal symbol encountered? just some space in the damn symbol.
             # this shit is treated as something of its kind.
@@ -223,7 +223,7 @@ class HyReader(Reader):
             # from hy.debugger import myTryExceptMacro
             # you may wonder.
             if model is not None:
-                # maybe you can hook this. if returned 
+                # maybe you can hook this. if returned
                 # but it did not return to us. there's no model conversion.
                 # import sys
                 # print('generating model:', model, type(model),file=sys.stderr)
@@ -233,39 +233,50 @@ class HyReader(Reader):
                 # because these data structures may fuck up, hidden inside some normal expressions.
                 import hy.models
                 from hy.debugger import checkAuthenticTryExcept
-                from hy.utils import (my_max, my_min, my_a_greater_than_b, 
-                my_a_within_b # not identical! not overlap! but within!
+                from hy.utils import (
+                    my_max,
+                    my_min,
+                    my_a_greater_than_b,
+                    my_a_within_b,  # not identical! not overlap! but within!
                 )
-                if type(self.temaps) == dict: # if set to None, no shit is done.
-                    if type(model) == hy.models.Expression: # maybe this is not right.
-                    # you should not use this macro here.
+
+                if type(self.temaps) == dict:  # if set to None, no shit is done.
+                    if type(model) == hy.models.Expression:  # maybe this is not right.
+                        # you should not use this macro here.
                         # model = myTryExceptMacro(model)
                         # describe this model.
                         # try_except_check
                         # you may need to check if you are inside this thing.
                         # check start and end.
                         sig_try, sig_authentic = checkAuthenticTryExcept(model)
-                        if self.temaps == {}: # if not empty or None, we do not do shit.
+                        if (
+                            self.temaps == {}
+                        ):  # if not empty or None, we do not do shit.
                             if sig_try:
                                 if not sig_authentic:
-                                    modelInfos = {"start":(model.start_line,
-                            model.start_column),"end":
-                            (model.end_line,
-                            model.end_column)}
+                                    modelInfos = {
+                                        "start": (model.start_line, model.start_column),
+                                        "end": (model.end_line, model.end_column),
+                                    }
                                     # you should merge it in some sort.
                                     # sort the thing, merge one by one.
                                     hasMerge = False
-                                    getFlat = lambda x: ((x['start'][0], x['start'][1]), (x['end'][0], x['end'][1]))
+                                    getFlat = lambda x: (
+                                        (x["start"][0], x["start"][1]),
+                                        (x["end"][0], x["end"][1]),
+                                    )
                                     insertionPoint = 0
                                     deleteIndexs = []
-                                    for index, mrange in (self.tryexcept_ranges):
+                                    for index, mrange in self.tryexcept_ranges:
                                         # merge? continue searching for potential merges in sorted array.
-                                        mls, mle =getFlat(mrange)
+                                        mls, mle = getFlat(mrange)
                                         cls, cle = getFlat(modelInfos)
                                         # compare min or max.
                                         commonls = my_max(mls, cls)
                                         commonle = my_min(mle, cle)
-                                        needMerge = my_a_greater_than_b(commonle, commonls)
+                                        needMerge = my_a_greater_than_b(
+                                            commonle, commonls
+                                        )
                                         # how to merge?
                                         # must have some common things, otherwise we do not merge.
                                         if not hasMerge:
@@ -278,21 +289,33 @@ class HyReader(Reader):
                                             # this is the damn shit.
                                             deleteIndexs.append(index)
                                             insertionPoint = index
-                                            modelInfos = {"start":mergels, "end":mergele}
+                                            modelInfos = {
+                                                "start": mergels,
+                                                "end": mergele,
+                                            }
 
                                     # not merge? store separately, sort it!
                                     if not hasMerge:
                                         self.tryexcept_ranges.append(modelInfos)
                                         # you need to sort it somehow.
-                                        self.tryexcept_ranges.sort(key=lambda x: x['start'][0]*500+x['start'][1]) # well there might be some loophole. shit.
+                                        self.tryexcept_ranges.sort(
+                                            key=lambda x: x["start"][0] * 500
+                                            + x["start"][1]
+                                        )  # well there might be some loophole. shit.
                                     else:
                                         # first mark as "None" at all deleted indexs.
                                         for index in deleteIndexs:
                                             self.tryexcept_ranges[index] = None
                                         # insert at the insertion point.
-                                        self.tryexcept_ranges[insertionPoint]= modelInfos
+                                        self.tryexcept_ranges[
+                                            insertionPoint
+                                        ] = modelInfos
                                         # remove all None values.
-                                        self.tryexcept_ranges = [x for x in self.tryexcept_ranges if x is not None]
+                                        self.tryexcept_ranges = [
+                                            x
+                                            for x in self.tryexcept_ranges
+                                            if x is not None
+                                        ]
                                 # we need to record this shit.
                                 # but we record the outmost layer only?
                                 # we need to merge try-except ranges?
@@ -300,20 +323,20 @@ class HyReader(Reader):
                             # if not authentic, not rewrapping.
                             if sig_try and sig_authentic:
                                 ...
-                            else: # check if within other big try_except blocks, refuse to produce this signal only from sig_try and sig_authentic
-                                modelInfos = {"start":(model.start_line,
-                            model.start_column),"end":
-                            (model.end_line,
-                            model.end_column)}
-                                mtryexcept_ranges = self.temaps.get(self.counter,[])
+                            else:  # check if within other big try_except blocks, refuse to produce this signal only from sig_try and sig_authentic
+                                modelInfos = {
+                                    "start": (model.start_line, model.start_column),
+                                    "end": (model.end_line, model.end_column),
+                                }
+                                mtryexcept_ranges = self.temaps.get(self.counter, [])
                                 # check if there's at least one within these try-except ranges.
-                                withinTryExcept=False
+                                withinTryExcept = False
                                 # this is some expression. be warned!
                                 for mtryexcept_range in mtryexcept_ranges:
                                     # do something you bitch!
                                     # how the fuck do we know which expression we are at?
                                     # pass the counter please!
-                                    signal = my_a_within_b(modelInfos,mtryexcept_ranges)
+                                    signal = my_a_within_b(modelInfos, mtryexcept_range)
                                     if signal:
                                         withinTryExcept = True
                                         break
@@ -323,6 +346,7 @@ class HyReader(Reader):
                                 else:
                                     # wrap it!
                                     from hy.debugger import myTryExceptMacro
+
                                     model = myTryExceptMacro(model)
                                     # you may need to fucking analyze this shit first?
                         # you should not enable this mode.
@@ -366,7 +390,7 @@ class HyReader(Reader):
         # print("LCOMMENT", lcomment) # use stderr instead.
         # this is the damn thing.
         # mpos_after = self._pos
-        mcomment = ";"+"".join(lcomment)
+        mcomment = ";" + "".join(lcomment)
         # print("____")
         # print("BEFORE:",mpos_before) # this is the thing you want the most.
         # print("AFTER:", mpos_after)
@@ -470,7 +494,7 @@ class HyReader(Reader):
     # Reader tag-macros
     ###
 
-    @reader_for("#") # this is tag dispatch.
+    @reader_for("#")  # this is tag dispatch.
     def tag_dispatch(self, key):
         """General handler for reader macros (and tag macros).
 
@@ -482,7 +506,7 @@ class HyReader(Reader):
         as `#*` followed by `args`).
         """
 
-        if not self.peekc(): # another raise from another thing.
+        if not self.peekc():  # another raise from another thing.
             raise PrematureEndOfInput.from_reader(
                 "Premature end of input while attempting dispatch", self
             )

@@ -1,0 +1,1 @@
+python3 read_without_try_except.py > no_wrapping_under_try_except_formatted_cleaned_processed.hy # what about assertions?

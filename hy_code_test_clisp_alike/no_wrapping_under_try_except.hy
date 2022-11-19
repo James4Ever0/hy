@@ -13,9 +13,10 @@
         (try
             (/ 1 0)
             (trivial_func (/ 1 0))
+            (assert (/ 1 0)) ; this is definitely not wrapped, if our design is correct.
             (except [] (print "THIS EXCEPTION IS WRAPPED"))
         )
-        (assert (= 1 0));;this is not wrapped.
+        (assert (= 1 0));;this is not wrapped. no it is wrapped and it is fucked.
     )
 )
 

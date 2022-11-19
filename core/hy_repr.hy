@@ -6,6 +6,8 @@
   collections
   _collections_abc [dict-keys dict-values dict-items])
 
+;; this is only used interally by hy. fucking shit. i just cannot fuck this up.
+
 (setv _registry {})
 (defn hy-repr-register [types f [placeholder None]]
   "``hy.repr-register`` lets you set the function that ``hy.repr`` calls to

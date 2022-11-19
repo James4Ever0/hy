@@ -58,10 +58,10 @@ class Object:
                     setattr(self, attr, getattr(other, attr))
         else:
             raise TypeError(
-                    "Can't replace a non Hy object '{}' with a Hy object '{}'".format(
-                        repr(other), repr(self)
-                        )
-                    )
+                "Can't replace a non Hy object '{}' with a Hy object '{}'".format(
+                    repr(other), repr(self)
+                )
+            )
 
         return self
 
@@ -99,8 +99,8 @@ class Object:
 
     def __repr__(self):
         return (
-                f"hy.models.{self.__class__.__name__}" f"({super(Object, self).__repr__()})"
-                )
+            f"hy.models.{self.__class__.__name__}" f"({super(Object, self).__repr__()})"
+        )
 
     def __eq__(self, other):
         return type(self) is type(other) and super().__eq__(other)
@@ -192,9 +192,9 @@ class String(Object, str):
 
     def __repr__(self):
         return "hy.models.String({}{})".format(
-                super(Object, self).__repr__(),
-                "" if self.brackets is None else f", brackets={self.brackets!r}",
-                )
+            super(Object, self).__repr__(),
+            "" if self.brackets is None else f", brackets={self.brackets!r}",
+        )
 
     def __add__(self, other):
         return self.__class__(super().__add__(other))
@@ -259,10 +259,10 @@ class Keyword(Object):
             from hy.reader.reader import isnormalizedspace
 
             if value and (
-                    "." in value
-                    or any(isnormalizedspace(c) for c in value)
-                    or HyReader.NON_IDENT.intersection(value)
-                    ):
+                "." in value
+                or any(isnormalizedspace(c) for c in value)
+                or HyReader.NON_IDENT.intersection(value)
+            ):
                 raise ValueError(f'Syntactically illegal keyword: {":" + value!r}')
         self.name = value
 
@@ -315,10 +315,10 @@ def strip_digit_separators(number):
     # Don't strip a _ or , if it's the first character, as _42 and
     # ,42 aren't valid numbers
     return (
-            number[0] + number[1:].replace("_", "").replace(",", "")
-            if isinstance(number, str) and len(number) > 1
-            else number
-            )
+        number[0] + number[1:].replace("_", "").replace(",", "")
+        if isinstance(number, str) and len(number) > 1
+        else number
+    )
 
 
 class Integer(Object, int):
@@ -406,8 +406,8 @@ class Sequence(Object, tuple, _ColoredModel):
 
     def __add__(self, other):
         return self.__class__(
-                super().__add__(tuple(other) if isinstance(other, list) else other)
-                )
+            super().__add__(tuple(other) if isinstance(other, list) else other)
+        )
 
     def __getslice__(self, start, end):
         return self.__class__(super().__getslice__(start, end))
@@ -432,13 +432,13 @@ class Sequence(Object, tuple, _ColoredModel):
         with pretty():
             if self:
                 return self._colored(
-                        "hy.models.{}{}\n  {}{}".format(
-                            self._colored(self.__class__.__name__),
-                            self._colored("(["),
-                            self._colored(",\n  ").join(map(repr_indent, self)),
-                            self._colored("])"),
-                            )
-                        )
+                    "hy.models.{}{}\n  {}{}".format(
+                        self._colored(self.__class__.__name__),
+                        self._colored("(["),
+                        self._colored(",\n  ").join(map(repr_indent, self)),
+                        self._colored("])"),
+                    )
+                )
             else:
                 return self._colored(f"hy.models.{self.__class__.__name__}()")
 
@@ -463,8 +463,8 @@ class FComponent(Sequence):
 
     def __repr__(self):
         return "hy.models.FComponent({})".format(
-                super(Object, self).__repr__() + ", conversion=" + repr(self.conversion)
-                )
+            super(Object, self).__repr__() + ", conversion=" + repr(self.conversion)
+        )
 
 
 def _string_in_node(string, node):
@@ -486,17 +486,17 @@ class FString(Sequence):
 
     def __new__(cls, s=None, brackets=None):
         value = super().__new__(
-                cls,
-                # Join adjacent string nodes for the sake of equality
-                # testing.
-                (
-                    node
-                    for is_string, components in groupby(s, lambda x: isinstance(x, String))
-                    for node in (
-                        [reduce(operator.add, components)] if is_string else components
-                        )
-                    ),
+            cls,
+            # Join adjacent string nodes for the sake of equality
+            # testing.
+            (
+                node
+                for is_string, components in groupby(s, lambda x: isinstance(x, String))
+                for node in (
+                    [reduce(operator.add, components)] if is_string else components
                 )
+            ),
+        )
 
         if brackets is not None and _string_in_node(f"]{brackets}]", value):
             raise ValueError(f"Syntactically illegal bracket string: {s!r}")
@@ -513,10 +513,10 @@ class FString(Sequence):
         if self.brackets is None:
             return x
         return "{}{}brackets={!r})".format(
-                x[:-1],  # Clip off the final close paren
-                "" if x[-2] == "(" else ", ",
-                self.brackets,
-                )
+            x[:-1],  # Clip off the final close paren
+            "" if x[-2] == "(" else ", ",
+            self.brackets,
+        )
 
 
 class List(Sequence):
@@ -545,8 +545,8 @@ def recwrap(f):
 
 _wrappers[FComponent] = recwrap(FComponent)
 _wrappers[FString] = lambda fstr: FString(
-        (as_model(x) for x in fstr), brackets=fstr.brackets
-        )
+    (as_model(x) for x in fstr), brackets=fstr.brackets
+)
 _wrappers[List] = recwrap(List)
 _wrappers[list] = recwrap(List)
 
@@ -568,19 +568,19 @@ class Dict(Sequence, _ColoredModel):
                 for k, v in zip(self[::2], self[1::2]):
                     k, v = repr_indent(k), repr_indent(v)
                     pairs.append(
-                            ("{0}{c}\n  {1}\n  " if "\n" in k + v else "{0}{c} {1}").format(
-                                k, v, c=self._colored(",")
-                                )
-                            )
+                        ("{0}{c}\n  {1}\n  " if "\n" in k + v else "{0}{c} {1}").format(
+                            k, v, c=self._colored(",")
+                        )
+                    )
                 if len(self) % 2 == 1:
                     pairs.append(
-                            "{}  {}\n".format(repr_indent(self[-1]), self._colored("# odd"))
-                            )
+                        "{}  {}\n".format(repr_indent(self[-1]), self._colored("# odd"))
+                    )
                 return "{}\n  {}{}".format(
-                        self._colored("hy.models.Dict(["),
-                        "{c}\n  ".format(c=self._colored(",")).join(pairs),
-                        self._colored("])"),
-                        )
+                    self._colored("hy.models.Dict(["),
+                    "{c}\n  ".format(c=self._colored(",")).join(pairs),
+                    self._colored("])"),
+                )
             else:
                 return self._colored("hy.models.Dict()")
 
@@ -649,49 +649,65 @@ class Lazy(Object):
     form, is necessary to handle reader macros correctly; see :hy:func:`hy.read-many`.
     """
 
-    def __init__(self, gen,stream=None,filename=None,skip_shebang=False, protect_toplevel=True, temaps = {}):
+    def __init__(
+        self,
+        gen,
+        stream=None,
+        filename=None,
+        skip_shebang=False,
+        protect_toplevel=True,
+        temaps={},
+    ):
         super().__init__()
         self._gen1 = gen
         # you may need three generators.
         # you may obtain the same shit.
-        self.stream=stream
-        self.filename=filename
-        self.temaps=temaps # setting it to None will disable tryexcept protection in fine-grained level. not recommended though.
-        self.skip_shebang=skip_shebang
+        self.stream = stream
+        self.filename = filename
+        self.temaps = temaps  # setting it to None will disable tryexcept protection in fine-grained level. not recommended though.
+        self.skip_shebang = skip_shebang
 
         # get the try-except ranges right fucking here.
         if self.temaps == {}:
-            #do it here?
-            pos=stream.tell()
-            self.source=stream.read()
-            #are we skipping shebang?
+            # do it here?
+            pos = stream.tell()
+            self.source = stream.read()
+            # are we skipping shebang?
             # if shebang is skipped, we don't take care of that, shall we?
-            #anyway, the position is just the same.
+            # anyway, the position is just the same.
             stream.seek(pos)
             from io import StringIO
-            self.mstream=StringIO(self.source)
+
+            self.mstream = StringIO(self.source)
             self.mstream2 = StringIO(self.source)
             from hy.reader import HyReader
-            cnt=0
+
+            cnt = 0
             self.mreader2 = HyReader()
-            self._gen2 = self.mreader2.parse(stream = self.mstream2, filename = self.filename)
+            self._gen2 = self.mreader2.parse(
+                stream=self.mstream2, filename=self.filename
+            )
             while True:
-                #maybe you just cannot raise exception before iteration? maybe you are just unsure about the shit it will do?
+                # maybe you just cannot raise exception before iteration? maybe you are just unsure about the shit it will do?
                 try:
-                    form=next(self._gen2) # but you cannot get it at the first place. you may have a second try.
+                    form = next(
+                        self._gen2
+                    )  # but you cannot get it at the first place. you may have a second try.
                     # we don't take care of this form.
-                    #form=next(self.mgen)
-                    tryexcept_ranges=self.mreader2.tryexcept_ranges
-                    #and you should do copy that.
-                    self.temaps.update({cnt:tryexcept_ranges.copy()}) # are you sure you want to update?
-                    self.mreader2.tryexcept_ranges=[]
-                    cnt+=1
+                    # form=next(self.mgen)
+                    tryexcept_ranges = self.mreader2.tryexcept_ranges
+                    # and you should do copy that.
+                    self.temaps.update(
+                        {cnt: tryexcept_ranges.copy()}
+                    )  # are you sure you want to update?
+                    self.mreader2.tryexcept_ranges = []
+                    cnt += 1
                 except:
                     break
             # you shall generate all things according till error for this mgen to fetch all sort of things.
             # can you assure that? does that fucking work?
-            self.mreader=HyReader(temaps=self.temaps)
-            self._gen=self.mreader.parse(self.mstream,self.filename)
+            self.mreader = HyReader(temaps=self.temaps)
+            self._gen = self.mreader.parse(self.mstream, self.filename)
         else:
             self.mreader = None
             self._gen = self._gen1
@@ -701,34 +717,37 @@ class Lazy(Object):
 
         # this gen is the reader object. damn.
         # how to obtain this shit twice? copy the source code in first place? right fucking here?
-        #also whats the call for hy.read, which only read one single form?
-        self.counter=0
+        # also whats the call for hy.read, which only read one single form?
+        self.counter = 0
         # how to parse it twice?
         self.protect_toplevel = protect_toplevel
 
     def __iter__(self):
         # wrap this damn shit. PLEASE?
         from hy.debugger import myTryExceptMacro
+
         # from hy.models import Expression
         # import sys
         for elem in self._gen:
             # feed with some learned knowledge first, please.
             # print("TYPE OF FORM:", type(elem), file=sys.stderr)
-            # you only prevent shit from here. you need to prevent shit from 
+            # you only prevent shit from here. you need to prevent shit from
             # if type(elem) != Expression: #wrap every shit into try-except?
             # how to forgive code inside try...except?
             # you shall preprocess this shit. for debugging, let's stop using protect_toplevel
 
             # analyze this shit again. PLEASE?
             # re-enable this after you are done with temaps.
-            # if self.protect_toplevel:
-            #     elem = myTryExceptMacro(elem, checkExpression=True, skipAssertions=False) # will wrap everything.
+            if self.protect_toplevel:
+                elem = myTryExceptMacro(
+                    elem, checkExpression=True, skipAssertions=False
+                )  # will wrap everything.
             # print("FINAL FORM:", elem, file=sys.stderr)
             yield elem
             # and do something afterwards?
             if self.mreader:
-                self.counter+=1
-                self.mreader.counter+=1
+                self.counter += 1
+                self.mreader.counter += 1
         # yield from self._gen
 
     def __next__(self):
@@ -736,6 +755,6 @@ class Lazy(Object):
         elem = self._gen.__next__()
 
         if self.mreader:
-            self.counter+=1
-            self.mreader.counter+=1
+            self.counter += 1
+            self.mreader.counter += 1
         return elem

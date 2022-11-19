@@ -239,7 +239,7 @@ class HyCommandCompiler(codeop.CommandCompiler):
 class HyREPL(code.InteractiveConsole):
     "A subclass of :class:`code.InteractiveConsole` for Hy."
 
-    def __init__(self, spy=False, output_fn=None, locals=None, filename="<stdin>"):
+    def __init__(self, spy=False, output_fn=None, locals=None, filename="<stdin>"): # detect this output_fn. fuck.
 
         # Create a proper module for this REPL so that we can obtain it easily
         # (e.g. using `importlib.import_module`).
@@ -269,6 +269,8 @@ class HyREPL(code.InteractiveConsole):
                 imports = {name: mod.__dict__[name] for name in imports}
                 spy = spy or imports.get("repl_spy")
                 output_fn = output_fn or imports.get("repl_output_fn")
+                # print(type(output_fn))
+                # breakpoint()
 
                 # Load imports and defs
                 self.locals.update(imports)
@@ -395,8 +397,15 @@ class HyREPL(code.InteractiveConsole):
                 self.locals[sym], next_result = next_result, self.locals[sym]
 
             # Print the value.
-            if self.print_last_value:
+            if self.print_last_value: # print non-none shits.
                 try:
+                    # OUTPUTFUNC? <function hy_repr at 0x1052cdc10>
+                    # TYPE? <class 'function'>
+                    # code object? <code object hy_repr at 0x1018fbdf0, file "/Users/jamesbrown/Library/Python/3.8/lib/python/site-packages/hy/core/hy_repr.hy", line 49>
+                    
+                    # print("code object?",self.output_fn.__code__)
+                    # print("OUTPUTFUNC?", self.output_fn)
+                    # print("TYPE?", type(self.output_fn))
                     output = self.output_fn(self.last_value)
                 except Exception:
                     self.showtraceback()
@@ -714,8 +723,14 @@ def cmdline_handler(scriptname, argv): # run a single file?
             except HyLanguageError:
                 hy_exc_handler(*sys.exc_info())
                 sys.exit(1)
-
-    return HyREPL(spy=options.get("spy"), output_fn=options.get("repl_output_fn")).run()
+    output_fn = options.get("repl_output_fn")
+    # print("HYREPL OUTPUTFUNCTION:", output_fn)
+    # print('type?', type(output_fn)) # NONE? WTF?
+    mspy = options.get("spy")
+    # print("MSPY?", mspy)
+    # print("type?", type(mspy))
+    # also NONE? WTF?
+    return HyREPL(spy=mspy, output_fn=output_fn).run()
 
 
 # entry point for cmd line script "hy"
