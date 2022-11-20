@@ -1,3 +1,13 @@
 {
-    "python.formatting.provider": "black"
+    "python.formatting.provider": "black",
+    "custom-format.formatters": [
+        {
+          "language": "Hy",
+          "command": "nelean"
+        },
+        {
+          "language": "hy",
+          "command": "nelean"
+        }
+      ]
 }

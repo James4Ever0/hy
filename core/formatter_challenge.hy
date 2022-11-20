@@ -1,265 +1,533 @@
-;____
 (import
-  math [ isnan]
-  fractions [ Fraction]
-  re
-  datetime
-  collections
-  _collections_abc [ dict-keys dict-values dict-items])
+    math
+    [isnan]
+    fractions
+    [Fraction]
+    re
+    datetime
+    collections
+    _collections_abc
+    [dict-keys dict-values dict-items]
+)
 
-;comment_350fcdd6
+;; this is only used interally by hy. fucking shit. i just cannot fuck this up.
 
 (setv _registry {})
-(defn hy-repr-register [ types f [ placeholder None]]
-   string_ceb61d8f
- 
-  (for [ typ (if (isinstance types list) types [ types])]
-    (setv (get _registry typ) #(f placeholder))))
+
+(defn
+    hy-repr-register
+    [types f [placeholder None]]
+    "``hy.repr-register`` lets you set the function that ``hy.repr`` calls to
+  represent a type.
+
+  Examples:
+    ::
+
+       => (hy.repr-register the-type fun)
+
+       => (defclass C)
+       => (hy.repr-register C (fn [x] \"cuddles\"))
+       => (hy.repr [1 (C) 2])
+       \"[1 cuddles 2]\"
+
+       If the type of an object passed to ``hy.repr`` doesn't have a registered
+       function, ``hy.repr`` falls back on ``repr``.
+
+       Registered functions often call ``hy.repr`` themselves. ``hy.repr`` will
+       automatically detect self-references, even deeply nested ones, and
+       output ``\"...\"`` for them instead of calling the usual registered
+       function. To use a placeholder other than ``\"...\"``, pass a string of
+       your choice to the keyword argument ``:placeholder`` of
+       ``hy.repr-register``.
+
+      => (defclass Container [object]
+      ...   (defn __init__ (fn [self value]
+      ...     (setv self.value value))))
+      =>    (hy.repr-register Container :placeholder \"HY THERE\" (fn [x]
+      ...      (+ \"(Container \" (hy.repr x.value) \")\")))
+      => (setv container (Container 5))
+      => (setv container.value container)
+      => (print (hy.repr container))
+      '(Container HY THERE)'
+  "
+    (for
+        [typ (if
+            (isinstance types list)
+            types
+            [types]
+        )]
+        (setv (get _registry typ) #(f placeholder))
+    )
+)
 
 (setv _quoting False)
 (setv _seen (set))
-(defn hy-repr [ obj]
-   string_5b6fd879
- 
-  (setv [ f placeholder] (.get _registry (type obj) [ _base-repr None]))
 
-  (global _quoting)
-  (setv started-quoting False)
-  (when (and (not _quoting) (isinstance obj hy.models.Object)
-             (not (isinstance obj hy.models.Keyword)))
-    (setv _quoting True)
-    (setv started-quoting True))
+(defn
+    hy-repr
+    [obj]
+    "This function is Hy's equivalent of Python's built-in ``repr``.
+  It returns a string representing the input object in Hy syntax.
 
-  (setv oid (id obj))
-  (when (in oid _seen)
-    (return (if (is placeholder None)  string_04e5b492  placeholder)))
-  (.add _seen oid)
+  Like ``repr`` in Python, ``hy.repr`` can round-trip many kinds of
+  values. Round-tripping implies that given an object ``x``,
+  ``(hy.eval (hy.read-str (hy.repr x)))`` returns ``x``, or at least a value
+  that's equal to ``x``.
 
-  (try
-    (+ (if started-quoting  string_c286150d   string_26c8a224 ) (f obj))
-    (finally
-      (.discard _seen oid)
-      (when started-quoting
-        (setv _quoting False)))))
+  Examples:
+    ::
+
+       => hy.repr [1 2 3])
+       \"[1 2 3]\"
+       => (repr [1 2 3])
+       \"[1, 2, 3]\"
+  "
+    (setv [f placeholder] (.get
+        _registry
+        (type obj)
+        [_base-repr None]
+    ))
+    (global _quoting)
+    (setv started-quoting False)
+    (when
+        (and
+            (not _quoting)
+            (isinstance obj hy.models.Object)
+            (not (isinstance obj hy.models.Keyword))
+        )
+        (setv _quoting True)
+        (setv started-quoting True)
+    )
+    (setv oid (id obj))
+    (when (in oid _seen) (return (if
+        (is placeholder None)
+        "..."
+        placeholder
+    )))
+    (.add _seen oid)
+    (try
+        (+ (if
+            started-quoting
+            "'"
+            ""
+        ) (f obj))
+        (finally
+            (.discard _seen oid)
+            (when started-quoting (setv _quoting False))
+        )
+    )
+)
 
 (hy-repr-register
-  [ tuple hy.models.Tuple]
-  (fn [ x]
-    (+  string_d270d3cd  (_cat x)  string_28cd5ec5 )))
+    [tuple hy.models.Tuple]
+    (fn [x] (+
+        "#("
+        (_cat x)
+        ")"
+    ))
+)
 
-(hy-repr-register dict :placeholder  string_0a1aa2f2  (fn [ x]
-  (setv text (.join  string_9571c21d  (gfor
-    [ k v] (.items x)
-    (+ (hy-repr k)  string_9a953bac  (hy-repr v)))))
-  (+  string_5182d690  text  string_eff588fb )))
-(hy-repr-register hy.models.Dict :placeholder  string_0a1aa2f2  (fn [ x]
-  (setv text (.join  string_9a953bac  (gfor
-    [ i item] (enumerate x)
-    (+ (if (and i (= (% i 2) 0))  string_9a953bac   string_26c8a224 ) (hy-repr item)))))
-  (+  string_5182d690  text  string_eff588fb )))
-(hy-repr-register hy.models.Expression (fn [ x]
-  (setv syntax { 
-    'quote  string_c286150d 
-    'quasiquote  string_edab2bbf 
-    'unquote  string_5672de53 
-    'unquote-splice  string_31195048 
-    'unpack-iterable  string_877325fc 
-    'unpack-mapping  string_29318953 })
-  (cond
-    (and x (in (get x 0) syntax))
-      (+ (get syntax (get x 0)) (hy-repr (get x 1)))
-    True
-      (+  string_b775f6f9  (_cat x)  string_28cd5ec5 ))))
+(hy-repr-register
+    dict
+    :placeholder
+    "{...}"
+    (fn
+        [x]
+        (setv text (.join "  " (gfor
+            [k v]
+            (.items x)
+            (+
+                (hy-repr k)
+                " "
+                (hy-repr v)
+            )
+        )))
+        (+ "{" text "}")
+    )
+)
 
-(hy-repr-register [ hy.models.Symbol hy.models.Keyword] str)
-(hy-repr-register [ hy.models.String str hy.models.Bytes bytes] (fn [ x]
-  (setv r (.lstrip (_base-repr x)  string_04fa7aac
-  None))
-     string_213308e4
- 
-    (+
-      (if (isinstance x bytes)  string_620927a1
- )
-      (if (.startswith  string_7cee94a4  r)
-        ;comment_a17f482f
-        ;comment_2440c7fc
-        r
-        ;comment_37bd7322
-        ;comment_b42bb1bf
-        (+  string_7cee94a4  (.replace (cut r 1 -1)  string_7cee94a4   string_a6f2e3eb )  string_7cee94a4 ))))))
-(hy-repr-register bytearray (fn [ x]
-   string_ae74b963
- ))
+(hy-repr-register
+    hy.models.Dict
+    :placeholder
+    "{...}"
+    (fn
+        [x]
+        (setv text (.join " " (gfor
+            [i item]
+            (enumerate x)
+            (+ (if
+                (and i (= (% i 2) 0))
+                " "
+                ""
+            ) (hy-repr item))
+        )))
+        (+ "{" text "}")
+    )
+)
+
+(hy-repr-register
+    hy.models.Expression
+    (fn
+        [x]
+        (setv syntax {
+            'quote
+            "'"
+            'quasiquote
+            "`"
+            'unquote
+            "~"
+            'unquote-splice
+            "~@"
+            'unpack-iterable
+            "#* "
+            'unpack-mapping
+            "#** "
+        })
+        (cond
+            (and x (in (get x 0) syntax))
+            (+ (get syntax (get x 0)) (hy-repr (get x 1)))
+            True
+            (+
+                "("
+                (_cat x)
+                ")"
+            )
+        )
+    )
+)
+
+(hy-repr-register [hy.models.Symbol hy.models.Keyword] str)
+(hy-repr-register [
+    hy.models.String
+    str
+    hy.models.Bytes
+    bytes
+] (fn
+    [x]
+    (setv r (.lstrip (_base-repr x) "ub"))
+    (if
+        (is-not None (getattr x "brackets" None))
+        f"#[{x.brackets}[{x}]{x.brackets}]"
+        (+ (if
+            (isinstance x bytes)
+            "b"
+            ""
+        ) (if
+            (.startswith "\"" r)
+            ; If Python's built-in repr produced a double-quoted string, use
+            ; that.
+            r
+            ; Otherwise, we have a single-quoted string, which isn't valid Hy, so
+            ; convert it.
+            (+
+                "\""
+                (.replace
+                    (cut r 1 -1)
+                    "\""
+                    "\\\""
+                )
+                "\""
+            )
+        ))
+    )
+))
+
+(hy-repr-register bytearray (fn [x] f"(bytearray {(hy-repr (bytes x))})"))
 (hy-repr-register bool str)
-(hy-repr-register [ hy.models.Float float] (fn [ x]
-  (setv fx (float x))
-  (cond
-    (isnan fx)   string_1a9c8de7 
-    (= fx Inf)   string_0659505b
- )  string_9a0ab1eb
-   string_1a9c8de7 )))
-
-(hy-repr-register [ range slice]
-                  (fn [ x]
-                    (setv op (. (type x) __name__))
-                    (if (= x.step (if (is (type x) range) 1 None))
-                        (if (= x.start (if (is (type x) range) 0 None))
-                             string_a870bc69
- 
-                             string_9f5f6873
- )
-                         string_967ad7e5
- )))
+(hy-repr-register
+    [hy.models.Float float]
+    (fn [x] (setv fx (float x)) (cond
+        (isnan fx)
+        "NaN"
+        (= fx Inf)
+        "Inf"
+        (= fx -Inf)
+        "-Inf"
+        True
+        (_base-repr x)
+    ))
+)
 
 (hy-repr-register
-  hy.models.FComponent
-  (fn [ x] (+
-     string_5182d690 
-    (hy-repr (get x 0))
-    (if x.conversion  string_4173d328
-   string_26c8a224 )
-    (if (> (len x) 1)
-      (+  string_ea413af7  (if (isinstance (get x 1) hy.models.String)
-        (get x 1)
-        (hy-repr (get x 1))))
-       string_26c8a224 )
-     string_eff588fb )))
+    [hy.models.Complex complex]
+    (fn [x] (.replace
+        (.replace
+            (.strip (_base-repr x) "()")
+            "inf"
+            "Inf"
+        )
+        "nan"
+        "NaN"
+    ))
+)
 
 (hy-repr-register
-  hy.models.FString
-  (fn [ fstring]
-    (if (is-not None fstring.brackets)
-      (+  string_d61bacc6  fstring.brackets  string_8dbb5b2c 
-         #* (lfor component fstring
-                  (if (isinstance component hy.models.String)
-                      (.replace (.replace (str component)
-                         string_5182d690   string_daa7f28b )
-                         string_eff588fb   string_631dd5ef )
-                      (hy-repr component)))
-          string_4733db0b  fstring.brackets  string_4733db0b )
-      (+  string_c446d563 
-         #* (lfor component fstring
-                  :setv s (hy-repr component)
-                  (if (isinstance component hy.models.String)
-                      (.replace (.replace (cut s 1 -1)
-                         string_5182d690   string_daa7f28b )
-                         string_eff588fb   string_631dd5ef )
-                      s))
-          string_7cee94a4 ))))
+    [range slice]
+    (fn [x] (setv op (. (type x) __name__)) (if
+        (= x.step (if (is (type x) range) 1 None))
+        (if
+            (= x.start (if (is (type x) range) 0 None))
+            f"({op} {x.stop})"
+            f"({op} {x.start} {x.stop})"
+        )
+        f"({op} {x.start} {x.stop} {x.step})"
+    ))
+)
 
-(setv _matchobject-type (type (re.match  string_26c8a224   string_26c8a224 )))
-(hy-repr-register _matchobject-type (fn [ x]
-  (.format  string_6f1c10bf
- 
-    _matchobject-type.__module__
-    _matchobject-type.__name__
-    (hy-repr (.span x))
-    (hy-repr (.group x 0)))))
-(hy-repr-register re.Pattern (fn [ x]
-  (setv flags (& x.flags (~ re.UNICODE)))
-    ;comment_f8d5527b
-    ;comment_53692f10
-  (.format  string_10a04b1b
- 
-    (hy-repr x.pattern)
-    (if flags
-      (+  string_9a953bac  (do
-        ;comment_e1c87eee
-        (setv flags (re.RegexFlag flags))
-        (setv flags (lfor
-          f (sorted re.RegexFlag)
-          :if (& f flags)
-          (+  string_86d3aabb  f.name)))
-        (if (= (len flags) 1)
-          (get flags 0)
-          (.format  string_66963223  (.join  string_9a953bac  flags)))))
-       string_26c8a224 ))))
-
-(hy-repr-register datetime.datetime (fn [ x]
-  (.format  string_0badb381
- 
-    (_strftime-0 x  string_968f0785
- )
-    (_repr-time-innards x))))
-(hy-repr-register datetime.date (fn [ x]
-  (_strftime-0 x  string_7182029c
- )))
-(hy-repr-register datetime.time (fn [ x]
-  (.format  string_4b4d7931
- 
-    (_strftime-0 x  string_5824b6ed )
-    (_repr-time-innards x))))
-(defn _repr-time-innards [ x]
-  (.rstrip (+  string_9a953bac  (.join  string_9a953bac  (filter (fn [ x] x) [ 
-    (when x.microsecond (str x.microsecond))
-    (when (is-not x.tzinfo None) (+  string_bde8b798  (hy-repr x.tzinfo)))
-    (when x.fold (+  string_c761c963  (hy-repr x.fold)))])))))
-(defn _strftime-0 [ x fmt]
-  ;comment_63f652cb
-  ;comment_daae9ff1
-  (re.sub  string_d0d7b7a8
-   string_9c1fd04d  (.strftime x fmt)))
-
-(hy-repr-register collections.ChainMap (fn [ x]
-  (.format  string_e0e65c82
- 
-    (_cat x.maps))))
-(hy-repr-register collections.Counter (fn [ x]
-  (.format  string_f93d3ffb
- 
-    (hy-repr (dict x)))))
-(hy-repr-register collections.OrderedDict (fn [ x]
-  (.format  string_975c18b5
- 
-    (hy-repr (list (.items x))))))
-(hy-repr-register collections.defaultdict (fn [ x]
-  (.format  string_178494bb
- 
-    (hy-repr x.default-factory)
-    (hy-repr (dict x)))))
 (hy-repr-register
-  Fraction
-  (fn [ x]  string_68b32f5b
- ))
+    hy.models.FComponent
+    (fn [x] (+
+        "{"
+        (hy-repr (get x 0))
+        (if
+            x.conversion
+            f" !{x.conversion}"
+            ""
+        )
+        (if
+            (> (len x) 1)
+            (+ " :" (if
+                (isinstance (get x 1) hy.models.String)
+                (get x 1)
+                (hy-repr (get x 1))
+            ))
+            ""
+        )
+        "}"
+    ))
+)
 
-(for [ [ types fmt] [ 
-    [ [list hy.models.List]  string_2ad22f47 ]
-    [ [set hy.models.Set]  string_f42977b2 ]
-    [ frozenset  string_0c84e409
- ]
-    [ collections.deque  string_8cb4fe59
- ]
-    [ dict-keys  string_8014a0d5
- ]
-    [ dict-values  string_836555c5
- ]
-    [ dict-items  string_bcf5b2ec
- ]]]
-  (defn mkrepr [ fmt]
-    (fn [ x] (.replace fmt  string_04e5b492  (_cat x) 1)))
-  (hy-repr-register types :placeholder fmt (mkrepr fmt)))
+(hy-repr-register
+    hy.models.FString
+    (fn [fstring] (if
+        (is-not None fstring.brackets)
+        (+
+            "#["
+            fstring.brackets
+            "["
+            #*
+            (lfor component fstring (if
+                (isinstance component hy.models.String)
+                (.replace
+                    (.replace
+                        (str component)
+                        "{"
+                        "{{"
+                    )
+                    "}"
+                    "}}"
+                )
+                (hy-repr component)
+            ))
+            "]"
+            fstring.brackets
+            "]"
+        )
+        (+
+            "f\""
+            #*
+            (lfor
+                component
+                fstring
+                :setv s
+                (hy-repr component)
+                (if (isinstance component hy.models.String) (.replace
+                    (.replace
+                        (cut s 1 -1)
+                        "{"
+                        "{{"
+                    )
+                    "}"
+                    "}}"
+                ) s)
+            )
+            "\""
+        )
+    ))
+)
 
-(defn _cat [ obj]
-  (.join  string_9a953bac  (map hy-repr obj)))
+(setv _matchobject-type (type (re.match "" "")))
+(hy-repr-register
+    _matchobject-type
+    (fn [x] (.format
+        "<{}.{} object; :span {} :match {}>"
+        _matchobject-type.__module__
+        _matchobject-type.__name__
+        (hy-repr (.span x))
+        (hy-repr (.group x 0))
+    ))
+)
 
-(defn _base-repr [ x]
-  (when (and (isinstance x tuple) (hasattr x  string_864dd8cf ))
-    ;comment_c01b54fd
-    ;comment_7eb6ad5f
-    ;comment_e46336d2
-    (return (.format  string_4814b242 
-                     (. (type x) __name__)
-                     (.join  string_9a953bac  (gfor [ k v] (zip x._fields x) (+  string_44c80ac3  k  string_9a953bac  (hy-repr v)))))))
+(hy-repr-register re.Pattern (fn
+    [x]
+    (setv flags (& x.flags (~ re.UNICODE)))
+    ; We remove re.UNICODE since it's redundant with the type
+    ; of the pattern, and Python's `repr` omits it, too.
+    (.format
+        "(re.compile {}{})"
+        (hy-repr x.pattern)
+        (if
+            flags
+            (+ " " (do
+                ; Convert `flags` from an integer to a list of names.
+                (setv flags (re.RegexFlag flags))
+                (setv flags (lfor
+                    f
+                    (sorted re.RegexFlag)
+                    :if
+                    (& f flags)
+                    (+ "re." f.name)
+                ))
+                (if
+                    (= (len flags) 1)
+                    (get flags 0)
+                    (.format "(| {})" (.join " " flags))
+                )
+            ))
+            ""
+        )
+    )
+))
 
-  (when (not (isinstance x hy.models.Object))
-    (return (repr x)))
-  ;comment_12aad614
-  ;comment_2c58fede
-  (.__repr__
-    (next (gfor
-      t (. (type x) __mro__)
-      :if (not (issubclass t hy.models.Object))
-      t))
-    x))
+(hy-repr-register
+    datetime.datetime
+    (fn [x] (.format
+        "(datetime.datetime {}{})"
+        (_strftime-0 x "%Y %m %d %H %M %S")
+        (_repr-time-innards x)
+    ))
+)
 
-;____
+(hy-repr-register
+    datetime.date
+    (fn [x] (_strftime-0 x "(datetime.date %Y %m %d)"))
+)
+
+(hy-repr-register
+    datetime.time
+    (fn [x] (.format
+        "(datetime.time {}{})"
+        (_strftime-0 x "%H %M %S")
+        (_repr-time-innards x)
+    ))
+)
+
+(defn
+    _repr-time-innards
+    [x]
+    (.rstrip (+ " " (.join
+        " "
+        (filter (fn [x] x) [
+            (when x.microsecond (str x.microsecond))
+            (when (is-not x.tzinfo None) (+ ":tzinfo " (hy-repr x.tzinfo)))
+            (when x.fold (+ ":fold " (hy-repr x.fold)))
+        ])
+    )))
+)
+
+(defn
+    _strftime-0
+    [x fmt]
+    ; Remove leading 0s in `strftime`. This is a substitute for the `-`
+    ; flag for when Python isn't built with glibc.
+    (re.sub
+        r"(\A| )0([0-9])"
+        r"\1\2"
+        (.strftime x fmt)
+    )
+)
+
+(hy-repr-register
+    collections.ChainMap
+    (fn [x] (.format "(ChainMap {})" (_cat x.maps)))
+)
+
+(hy-repr-register
+    collections.Counter
+    (fn [x] (.format "(Counter {})" (hy-repr (dict x))))
+)
+
+(hy-repr-register
+    collections.OrderedDict
+    (fn [x] (.format "(OrderedDict {})" (hy-repr (list (.items x)))))
+)
+
+(hy-repr-register
+    collections.defaultdict
+    (fn [x] (.format
+        "(defaultdict {} {})"
+        (hy-repr x.default-factory)
+        (hy-repr (dict x))
+    ))
+)
+
+(hy-repr-register Fraction (fn [x] f"(Fraction {x.numerator} {x.denominator})"))
+(for
+    [[types fmt] [
+        [[list hy.models.List] "[...]"]
+        [[set hy.models.Set] "#{...}"]
+        [frozenset "(frozenset #{...})"]
+        [collections.deque "(deque [...])"]
+        [dict-keys "(dict-keys [...])"]
+        [dict-values "(dict-values [...])"]
+        [dict-items "(dict-items [...])"]
+    ]]
+    (defn
+        mkrepr
+        [fmt]
+        (fn [x] (.replace
+            fmt
+            "..."
+            (_cat x)
+            1
+        ))
+    )
+    (hy-repr-register
+        types
+        :placeholder
+        fmt
+        (mkrepr fmt)
+    )
+)
+
+(defn
+    _cat
+    [obj]
+    (.join " " (map hy-repr obj))
+)
+
+(defn
+    _base-repr
+    [x]
+    (when
+        (and (isinstance x tuple) (hasattr x "_fields"))
+        ; It's a named tuple. (We can't use `isinstance` or so because
+        ; generated named-tuple classes don't actually inherit from
+        ; collections.namedtuple.)
+        (return (.format
+            "({} {})"
+            (. (type x) __name__)
+            (.join " " (gfor
+                [k v]
+                (zip x._fields x)
+                (+
+                    ":"
+                    k
+                    " "
+                    (hy-repr v)
+                )
+            ))
+        ))
+    )
+    (when (not (isinstance x hy.models.Object)) (return (repr x)))
+    ; Call (.repr x) using the first class of x that doesn't inherit from
+    ; hy.models.Object.
+    (.__repr__ (next (gfor
+        t
+        (. (type x) __mro__)
+        :if
+        (not (issubclass t hy.models.Object))
+        t
+    )) x)
+)
+
