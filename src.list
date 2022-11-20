@@ -4,3 +4,4 @@ reader/__init__.py
 reader/reader.py
 reader/hy_reader.py
 debugger.py
+cmdline.py

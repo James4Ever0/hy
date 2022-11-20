@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from functools import reduce
 from itertools import groupby
 from math import isinf, isnan
+from traceback import print_exc
 
 from colorama import Fore
 
@@ -641,6 +642,7 @@ class Tuple(Sequence):
 _wrappers[Tuple] = recwrap(Tuple)
 _wrappers[tuple] = recwrap(Tuple)
 
+from hy.debugger import myTryExceptMacro, showStackTrace
 
 class Lazy(Object):
     """
@@ -655,8 +657,8 @@ class Lazy(Object):
         stream=None,
         filename=None,
         skip_shebang=False,
-        protect_toplevel=True,
-        temaps={},
+        protect_toplevel=True, # set to False when "-T" in sys.argv
+        temaps={}, # set it to None when you have "-L" flag in sys.argv
     ):
         super().__init__()
         self._gen1 = gen
@@ -669,6 +671,7 @@ class Lazy(Object):
 
         # get the try-except ranges right fucking here.
         if self.temaps == {}:
+            print("scan twice?")
             # do it here?
             pos = stream.tell()
             self.source = stream.read()
@@ -709,8 +712,9 @@ class Lazy(Object):
             self.mreader = HyReader(temaps=self.temaps)
             self._gen = self.mreader.parse(self.mstream, self.filename)
         else:
+            print("not going to scan twice.")
             self.mreader = None
-            self._gen = self._gen1
+            self._gen = gen
         # handle expressions differently?
         # see if the symbol is located somewhere in this namespace. see if there's chance to reload the definition of the damn symbol.
         # but most importantly, the damn repl shall be brought here.
@@ -724,7 +728,6 @@ class Lazy(Object):
 
     def __iter__(self):
         # wrap this damn shit. PLEASE?
-        from hy.debugger import myTryExceptMacro
 
         # from hy.models import Expression
         # import sys
@@ -739,21 +742,37 @@ class Lazy(Object):
             # analyze this shit again. PLEASE?
             # re-enable this after you are done with temaps.
             if self.protect_toplevel:
+                print("TOPLEVEL ENABLED")
                 elem = myTryExceptMacro(
                     elem, checkExpression=True, skipAssertions=False
                 )  # will wrap everything.
-            # print("FINAL FORM:", elem, file=sys.stderr)
+            else:
+                elem = showStackTrace(elem)
+            import sys
+            print("____")
+            print("<FINAL FORM>:", elem, file=sys.stderr)
+            print("____")
+
             yield elem
             # and do something afterwards?
             if self.mreader:
                 self.counter += 1
                 self.mreader.counter += 1
         # yield from self._gen
+        # wtf is this yield from?
 
     def __next__(self):
         ## what is this shitty next?
-        elem = self._gen.__next__()
+        elem = self._gen.__next__() # what the fuck is this next?
 
+
+        if self.protect_toplevel:
+            print("TOPLEVEL ENABLED")
+            elem = myTryExceptMacro(
+                elem, checkExpression=True, skipAssertions=False
+            )  # will wrap everything.
+        else:
+            elem = showStackTrace(elem)
         if self.mreader:
             self.counter += 1
             self.mreader.counter += 1

@@ -402,7 +402,7 @@ class HyREPL(code.InteractiveConsole):
                     # OUTPUTFUNC? <function hy_repr at 0x1052cdc10>
                     # TYPE? <class 'function'>
                     # code object? <code object hy_repr at 0x1018fbdf0, file "/Users/jamesbrown/Library/Python/3.8/lib/python/site-packages/hy/core/hy_repr.hy", line 49>
-                    
+
                     # print("code object?",self.output_fn.__code__)
                     # print("OUTPUTFUNC?", self.output_fn)
                     # print("TYPE?", type(self.output_fn))
@@ -525,7 +525,19 @@ def cmdline_handler(scriptname, argv): # run a single file?
     # We need to terminate interpretation of options after certain
     # options, such as `-c`. So, we can't use `argparse`.
 
+    # hey you need to disable my security protocol.
+
     defs = [
+        dict(
+            name=["-T"],
+            action="store_true",
+            help="disable toplevel try-except"
+        ),
+        dict(
+            name=["-L"], # maybe this shit has been removed.
+            action="store_true",
+            help="disable line-by-line try-except"
+        ),
         dict(
             name=["-B"],
             action="store_true",
@@ -585,7 +597,10 @@ def cmdline_handler(scriptname, argv): # run a single file?
     # `sys.executable` (saving the original, just in case).
     # The `__main__` module will also have `__file__` set to the
     # entry-point script.  Currently, I don't see an immediate problem, but
+    # o_t = '-T' in argv
+    # o_l = '-L' in argv
     # that's not how the Python cmdline works.
+    # you need to know the commandline arguments.
     hy.executable = argv[0]
     hy.sys_executable = sys.executable
     sys.executable = hy.executable
@@ -608,7 +623,7 @@ def cmdline_handler(scriptname, argv): # run a single file?
             elif i is not None and i + 1 < len(item):
                 arg = item[i + 1 + (item[i + 1] == "=") :]
             elif argv:
-                arg = argv.pop(0)
+                arg = argv.pop(0) # pop what? what do you want to do?
             else:
                 err("option {}: expected one argument", opt)
             options[match["dest"]] = arg
@@ -638,8 +653,18 @@ def cmdline_handler(scriptname, argv): # run a single file?
                 break
         else:
             # We're done with options. Add the item back.
-            argv.insert(0, item)
+            argv.insert(0, item) # add back? wtf?
             break
+    
+    # for opt in ['T', 'L']:
+    #     if opt in options:
+    from hy.config import config
+    #         argv.insert(0, f'-{opt}')
+    if 'T' in options:
+        config['toplevel']=False
+
+    if 'L' in options:
+        config['line-by-line']=False
 
     if "E" in options:
         _remove_python_envs()

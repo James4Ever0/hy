@@ -1,5 +1,6 @@
-import re
+# import re
 from io import StringIO
+import sys
 
 import hy.models
 
@@ -28,7 +29,7 @@ def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
        input."""
 
     if isinstance(stream, str):
-        stream = StringIO(stream) # use stringio.
+        stream = StringIO(stream)  # use stringio.
     pos = stream.tell()
     if skip_shebang:
         if stream.read(2) == "#!":
@@ -41,9 +42,23 @@ def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
     stream.seek(pos)
     # warning, this is the damn parser.
     # how to generate code from this shit?
+    from hy.config import config
 
-    m = hy.models.Lazy((reader or HyReader()).parse(stream, filename),stream=stream,filename=filename,skip_shebang=skip_shebang)
-    m.source = source # how is this done? applied source and filename?
+    temaps = {} if (config["line-by-line"]) else None
+    protect_toplevel = True if (config["toplevel"]) else False
+    # print("SYS_ARGV:", sys.argv)
+    # print("CONFIG?", config)
+    # breakpoint()
+
+    m = hy.models.Lazy(
+        (reader or HyReader()).parse(stream, filename),
+        stream=stream,
+        filename=filename,
+        skip_shebang=skip_shebang,
+        temaps=temaps,
+        protect_toplevel=protect_toplevel,
+    )
+    m.source = source  # how is this done? applied source and filename?
     m.filename = filename
     return m
 
@@ -56,7 +71,7 @@ def read(stream, filename=None, reader=None):
 
     it = read_many(stream, filename, reader)
     try:
-        m = next(it) # just one single form.
+        m = next(it)  # just one single form.
     except StopIteration:
         raise EOFError()
     else:
