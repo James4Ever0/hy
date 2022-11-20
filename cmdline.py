@@ -361,6 +361,8 @@ class HyREPL(code.InteractiveConsole):
         )
 
     def showtraceback(self):
+        # better not to do shit, just return
+        return
         self._error_wrap(super().showtraceback)
 
     def runcode(self, code):

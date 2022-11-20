@@ -6,6 +6,15 @@ def showStackTrace(myExpression):
     # let's fuck this up...
     baseExpression = E(
         [S("try"), myExpression]
++ [
+            E(
+                [
+                    S("except"),
+                    L([S('SystemExit')]),
+                    E([S("pass"),]),
+                ]
+            )
+        ]
         + [
             E(
                 [
@@ -13,7 +22,15 @@ def showStackTrace(myExpression):
                     L(),
                     E([S("import"), S("traceback")]),
                     E([S("traceback.print_exc")]),
+                ]
+            )
+        ]
++ [
+            E(
+                [
+                    S("finally"),
                     E([S("raise"),]),
+
                 ]
             )
         ]

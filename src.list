@@ -5,3 +5,4 @@ reader/reader.py
 reader/hy_reader.py
 debugger.py
 cmdline.py
+config.py
