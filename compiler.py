@@ -2,7 +2,7 @@ import ast
 import copy
 import importlib
 import inspect
-import keyword
+import keyword # wtf is this shit?
 import traceback
 import types
 

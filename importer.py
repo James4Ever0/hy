@@ -166,6 +166,7 @@ def _hy_source_to_code(self, data, path, _optimize=-1):
         with loader_module_obj(self) as module:
             # transform hy_tree here? where the fuck the hy_tree is coming from?
             data = hy_compile(hy_tree, module) # this compile can go wrong. or not?
+            # how the fuck you can handle this shit?
             print("HY COMPILED DATA:", file=sys.stderr) # this is ast module object.
             print(data, file=sys.stderr)
 

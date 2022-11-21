@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from functools import reduce
 from itertools import groupby
 from math import isinf, isnan
-from traceback import print_exc
+# from traceback import print_exc
 
 from colorama import Fore
 
@@ -661,7 +661,7 @@ class Lazy(Object):
         temaps={}, # set it to None when you have "-L" flag in sys.argv
     ):
         super().__init__()
-        self._gen1 = gen
+        self._gen1 = gen # are you sure this fucking works?
         # you may need three generators.
         # you may obtain the same shit.
         self.stream = stream
@@ -669,21 +669,21 @@ class Lazy(Object):
         self.temaps = temaps  # setting it to None will disable tryexcept protection in fine-grained level. not recommended though.
         self.skip_shebang = skip_shebang
 
+        pos = stream.tell()
+        self.source = stream.read()
+        # are we skipping shebang?
+        # if shebang is skipped, we don't take care of that, shall we?
+        # anyway, the position is just the same.
+        stream.seek(pos)
+        from io import StringIO
+        from hy.reader import HyReader
+
+        self.mstream = StringIO(self.source)
         # get the try-except ranges right fucking here.
         if self.temaps == {}:
-            print("scan twice?")
+            print("____scan twice?____")
             # do it here?
-            pos = stream.tell()
-            self.source = stream.read()
-            # are we skipping shebang?
-            # if shebang is skipped, we don't take care of that, shall we?
-            # anyway, the position is just the same.
-            stream.seek(pos)
-            from io import StringIO
-
-            self.mstream = StringIO(self.source)
             self.mstream2 = StringIO(self.source)
-            from hy.reader import HyReader
 
             cnt = 0
             self.mreader2 = HyReader()
@@ -712,9 +712,12 @@ class Lazy(Object):
             self.mreader = HyReader(temaps=self.temaps)
             self._gen = self.mreader.parse(self.mstream, self.filename)
         else:
-            print("not going to scan twice.")
+            print("____not going to scan twice.____")
             self.mreader = None
             self._gen = gen
+            # self.mreader = HyReader(temaps = None) # fuck?
+        # self._gen =self.mreader.parse(self.mstream, self.filename)
+        # self._gen = gen
         # handle expressions differently?
         # see if the symbol is located somewhere in this namespace. see if there's chance to reload the definition of the damn symbol.
         # but most importantly, the damn repl shall be brought here.
@@ -727,6 +730,7 @@ class Lazy(Object):
         self.protect_toplevel = protect_toplevel
 
     def __iter__(self):
+        import sys
         # wrap this damn shit. PLEASE?
 
         # from hy.models import Expression
@@ -742,16 +746,17 @@ class Lazy(Object):
             # analyze this shit again. PLEASE?
             # re-enable this after you are done with temaps.
             if self.protect_toplevel:
-                print("TOPLEVEL ENABLED")
+                print("TOPLEVEL ENABLED", file=sys.stderr)
                 elem = myTryExceptMacro(
                     elem, checkExpression=True, skipAssertions=False
                 )  # will wrap everything.
             else:
-                elem = showStackTrace(elem)
+                elem = showStackTrace(elem) # are you fucking sure this fucking works?
+            # when this shit is not wrapped around shit, it is working.
             import sys
-            print("____")
+            print("____", file=sys.stderr)
             print("<FINAL FORM>:", elem, file=sys.stderr)
-            print("____")
+            print("____", file=sys.stderr)
 
             yield elem
             # and do something afterwards?
@@ -763,11 +768,10 @@ class Lazy(Object):
 
     def __next__(self):
         ## what is this shitty next?
+        import sys
         elem = self._gen.__next__() # what the fuck is this next?
-
-
         if self.protect_toplevel:
-            print("TOPLEVEL ENABLED")
+            print("TOPLEVEL ENABLED", file=sys.stderr)
             elem = myTryExceptMacro(
                 elem, checkExpression=True, skipAssertions=False
             )  # will wrap everything.

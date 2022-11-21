@@ -252,7 +252,7 @@ class HyREPL(code.InteractiveConsole):
         # `sys.modules`, and consistently use its namespace as `self.locals`
         # from here on.
         self.module = sys.modules.setdefault(module_name, types.ModuleType(module_name))
-        self.module.__dict__.update(self.locals)
+        self.module.__dict__.update(self.locals) # wtf is this module?
         self.locals = self.module.__dict__
 
         if os.environ.get("HYSTARTUP"):
@@ -281,7 +281,7 @@ class HyREPL(code.InteractiveConsole):
             except Exception as e:
                 print(e)
 
-        self.hy_compiler = HyASTCompiler(self.module, module_name)
+        self.hy_compiler = HyASTCompiler(self.module, module_name) # how to transform this shit into ast?
 
         self.cmdline_cache = {}
         self.compile = HyCommandCompiler(

@@ -2,16 +2,29 @@ import hy.models
 
 from hy.models import Symbol as S, Expression as E, List as L, String as STR
 
-def showStackTrace(myExpression):
+
+def showStackTrace(myExpression):  # warning! please do copy the line metadata.
+    # only triggered when toplevel protection is disabled.
     # let's fuck this up...
     baseExpression = E(
         [S("try"), myExpression]
-+ [
+        + [
             E(
                 [
                     S("except"),
-                    L([S('SystemExit')]),
-                    E([S("pass"),]),
+                    L([S("SystemExit")]),
+                    E(
+                        [
+                            S("pass"),
+                        ]
+                    ),
+                    E(
+                        [
+                            S(
+                                "raise"
+                            ),  # finally raise what? what the fuck do you want? what the shit do you want?
+                        ]
+                    ),
                 ]
             )
         ]
@@ -22,32 +35,49 @@ def showStackTrace(myExpression):
                     L(),
                     E([S("import"), S("traceback")]),
                     E([S("traceback.print_exc")]),
+                    E(
+                        [
+                            S(
+                                "raise"
+                            ),  # finally raise what? what the fuck do you want? what the shit do you want?
+                        ]
+                    ),
                 ]
             )
         ]
-+ [
-            E(
-                [
-                    S("finally"),
-                    E([S("raise"),]),
-
-                ]
-            )
-        ]
+        # + [
+        #     E(
+        #         [
+        #             S("finally"),
+        #             E(
+        #                 [
+        #                     S("raise"), # finally raise what? what the fuck do you want? what the shit do you want?
+        #                 ]
+        #             ),
+        #         ]
+        #     )
+        # ]
     )
+
+    baseExpression._start_column = myExpression._start_column
+    baseExpression._start_line = myExpression._start_line
+    baseExpression._end_column = myExpression._end_column
+    baseExpression._end_line = myExpression._end_line
     return baseExpression
+
 
 def checkAuthenticTryExcept(myExpression, signature="mySignature"):
     sig_try, sig_authentic = False, False
     if type(myExpression) == E:
         try:
             sig_try = myExpression[0] == S("try")
-            valSignature = myExpression[-1][2] # the last expression! fuck.
+            valSignature = myExpression[-1][2]  # the last expression! fuck.
             if valSignature == STR(signature):
                 sig_authentic = True
         except:
             pass
     return sig_try, sig_authentic
+
 
 # if without toplevel protection, we must trace this shit.
 def myTryExceptMacro(
@@ -55,12 +85,12 @@ def myTryExceptMacro(
     signature="mySignature",
     checkExpression=False,
     # skipAssertions = False
-    topLevel=False, # indicate this is toplevel try-except. no more reprievment for skipAssertions. # you may rewrap this thing.
+    topLevel=False,  # indicate this is toplevel try-except. no more reprievment for skipAssertions. # you may rewrap this thing.
     # but it fucking have no use! only use is for skipAssertions!
     allowed_exception_symbols=[
         S("SystemExit")
     ],  # make sure these errors are builtin. PLEASE!
-    skipAssertions=False, # to make it right?
+    skipAssertions=False,  # to make it right?
     # why skip assertions? no you should not skip assertions? who the fuck is calling us?
     # you should reload the method definition from somewhere?
     # talking of toplevel is not right.

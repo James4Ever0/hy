@@ -1,5 +1,11 @@
 (import inspect)
 
+;; how to reload this definition? parse the definition? transform this shit into ast?
+
+;; HyASTCompiler?
+;; retrieve this thing. use this thing!
+;; what if you are using some unknown macros?
+
 (defn
     reloading_hy ;; a decorator.
     [func] ;; retry till success.
@@ -8,6 +14,7 @@
     (setv mstack (inspect.stack))
     (setv myStack (get mstack 1)) ;; what fucking stack we have?
     ;; frame? fstack?
+    ;; we can retrieve this stack number.
     (print)
     ;; how the fuck you retrieve this shit.
     (print "MY STACK?" myStack) ;; i guess this stack is not good.
@@ -17,7 +24,10 @@
     (print "___________")
     ;; obtain code object?
     ;; myerrorfunc __main__
+    ;; sort the nearest definition around the shit.
     (print func.__name__ func.__module__ func.__code__) ; seek for name this damn function.
+    ;; this is the damn name. but how to seek for this function?
+    ;; check the damn definition.
     (defn inner_func
         [#* args #** kwargs]
         (print "executing code")
