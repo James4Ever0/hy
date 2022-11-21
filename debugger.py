@@ -13,11 +13,11 @@ def showStackTrace(myExpression):  # warning! please do copy the line metadata.
                 [
                     S("except"),
                     L([S("SystemExit")]),
-                    E(
-                        [
-                            S("pass"),
-                        ]
-                    ),
+                   # E(
+                   #     [
+                   #         S("pass"),
+                   #     ]
+                   # ),
                     E(
                         [
                             S(
