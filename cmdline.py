@@ -15,6 +15,7 @@ import time
 import traceback
 import types
 from contextlib import contextmanager
+from xmlrpc.client import ProtocolError
 
 import hy
 from hy._compat import PY3_9
@@ -32,6 +33,7 @@ from hy.macros import enable_readers, require, require_reader
 from hy.reader import mangle, read_many
 from hy.reader.exceptions import PrematureEndOfInput
 from hy.reader.hy_reader import HyReader
+from sqlalchemy import false
 
 sys.last_type = None
 sys.last_value = None
@@ -536,6 +538,11 @@ def cmdline_handler(scriptname, argv): # run a single file?
             help="disable toplevel try-except"
         ),
         dict(
+            name=["-K"],
+            action="store_true",
+            help="disable toplevel show stacktrace"
+        ),
+        dict(
             name=["-L"], # maybe this shit has been removed.
             action="store_true",
             help="disable line-by-line try-except"
@@ -667,6 +674,9 @@ def cmdline_handler(scriptname, argv): # run a single file?
 
     if 'L' in options:
         config['line-by-line']=False
+    
+    if 'K' in options:
+        config['disable-showstack']=True
 
     if "E" in options:
         _remove_python_envs()
@@ -846,6 +856,23 @@ def hy2py_main(): # this is hy2py, not hy!
         action="store_true",
         help=("Do not show the Python code generated " "from the AST"),
     )
+    ## add other options for disable security protocols.
+    parser.add_argument("--no-toplevel-try-except",
+            "-T",
+            action="store_true",
+            help="Disable toplevel try-except"
+    )
+    parser.add_argument("--no-showstack",
+            "-K",
+            action="store_true",
+            help="Disable toplevel showstack"
+    )
+    parser.add_argument(
+            "--no-line-by-line-try-except",
+            "-L", # maybe this shit has been removed.
+            action="store_true",
+            help="Disable line-by-line try-except"
+    )
 
     options = parser.parse_args(sys.argv[1:])
     # print(options)
@@ -868,14 +895,26 @@ def hy2py_main(): # this is hy2py, not hy!
                 print(node)
             yield node
 
-    hst = hy.models.Lazy(
-        printing_source(read_many(source, filename, skip_shebang=True))
+    import hy.models
+    import io
+    protect_toplevel = True if (not (options.no_toplevel_try_except == True)) else False
+    temaps = {} if (not (options.no_line_by_line_try_except == True)) else None
+    disable_showstack = True if options.no_showstack else False
+    # let's see what the fuck is going on?
+    # print(dir(options))
+    print("TOPLEVEL?", protect_toplevel, file=sys.stderr)
+    print("TEMAPS?", temaps, file=sys.stderr)
+    # 'no_line_by_line_try_except', 'no_toplevel_try_except
+    # breakpoint()
+    mstream = io.StringIO(source)
+    hst = hy.models.Lazy( # when did you do this shit?
+        printing_source(read_many(source, filename, skip_shebang=True)), filename = filename, stream=mstream, protect_toplevel=protect_toplevel, temaps = temaps, disable_showstack = disable_showstack
     )
     hst.source = source
     hst.filename = filename
 
     with filtered_hy_exceptions():
-        _ast = hy_compile(hst, "__main__", filename=filename, source=source)
+        _ast = hy_compile(hst, "__main__", filename=filename, source=source) # what about this fucking ast?
 
     if options.with_source:
         print()

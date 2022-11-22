@@ -48,6 +48,7 @@ def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
     protect_toplevel = True if (config["toplevel"]) else False
     # print("SYS_ARGV:", sys.argv)
     # print("CONFIG?", config)
+    disable_showstack = config['disable-showstack']
     # breakpoint()
 
     m = hy.models.Lazy(
@@ -57,6 +58,7 @@ def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
         skip_shebang=skip_shebang,
         temaps=temaps,
         protect_toplevel=protect_toplevel,
+        disable_showstack=disable_showstack
     )
     m.source = source  # how is this done? applied source and filename?
     m.filename = filename

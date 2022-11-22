@@ -4,7 +4,10 @@
 ;;fuck?
 
 (print "SHIT15?") ;; shit?
-(raise (Exception "SHIT?"))
+;; (raise (Exception "SHIT?"))
+
+;; it might not be advisable to do shit against loop in hy
+;; but hy must retrieve module name from code. is it avaliable from frame stack or function inspection?
 
 ;; this disable toplevel is fucked.
 
@@ -42,13 +45,17 @@
     (= __name__ "__main__");; how to execute this shit?
     ;; (+ 1 1)
     ;; "val"
-    ;; (print (dir badfunc))
+    (print (dir badfunc)) ;; where is the module information?
+    (print "MODULE?" badfunc.__module__)
     (print "JUST BEFORE WE INSPECT")
     ;; badfunc is function here. so consider to reload that as function.
     ;; handle it differently.
+
+    ;; what about class? how to handle the freaking decorator?
     (print
         badfunc.__code__
         badfunc.__name__
+        badfunc.__module__
     );; how do we obtain similar info for us?
     ;; this is empty expression. not allowed in file.
     ;; ()

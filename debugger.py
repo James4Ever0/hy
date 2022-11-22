@@ -3,9 +3,11 @@ import hy.models
 from hy.models import Symbol as S, Expression as E, List as L, String as STR
 
 
-def showStackTrace(myExpression):  # warning! please do copy the line metadata.
+def showStackTrace(myExpression, disable_showstack=False):  # warning! please do copy the line metadata.
     # only triggered when toplevel protection is disabled.
     # let's fuck this up...
+    if disable_showstack:
+        return myExpression
     baseExpression = E(
         [S("try"), myExpression]
         + [

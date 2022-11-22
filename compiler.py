@@ -447,7 +447,7 @@ class HyASTCompiler:
 
         return compiled_exprs, ret, keywords
 
-    @builds_model(Lazy)
+    @builds_model(Lazy) # fuck?
     def _compile_branch(self, exprs):
         """Make a branch out of an iterable of Result objects
 

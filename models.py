@@ -9,6 +9,7 @@ from colorama import Fore
 
 from hy import _initialize_env_var
 from hy.errors import HyWrapperError
+from sqlalchemy import false
 
 PRETTY = True
 COLORED = _initialize_env_var("HY_COLORED_AST_OBJECTS", False)
@@ -659,8 +660,17 @@ class Lazy(Object):
         skip_shebang=False,
         protect_toplevel=True, # set to False when "-T" in sys.argv
         temaps={}, # set it to None when you have "-L" flag in sys.argv
+        disable_showstack=False
     ):
         super().__init__()
+        import sys
+        if any([(a in sys.argv) for a in ["--no-line-by-line-try-except",'-L']]):
+            temaps = None
+        if any([(a in sys.argv) for a in ['-T','--no-toplevel-try-except']]):
+            protect_toplevel = False
+        if any([(a in sys.argv) for a in ['-K','--no-show-stack']]):
+            disable_showstack = True
+        self.disable_showstack = disable_showstack
         self._gen1 = gen # are you sure this fucking works?
         # you may need three generators.
         # you may obtain the same shit.
@@ -714,7 +724,7 @@ class Lazy(Object):
         else:
             print("____not going to scan twice.____")
             self.mreader = None
-            self._gen = gen
+            self._gen = gen # what is this fucking generator?
             # self.mreader = HyReader(temaps = None) # fuck?
         # self._gen =self.mreader.parse(self.mstream, self.filename)
         # self._gen = gen
@@ -751,7 +761,8 @@ class Lazy(Object):
                     elem, checkExpression=True, skipAssertions=False
                 )  # will wrap everything.
             else:
-                elem = showStackTrace(elem) # are you fucking sure this fucking works?
+                # toplevel is not enabled. it is raised.
+                elem = showStackTrace(elem, disable_showstack=self.disable_showstack) # are you fucking sure this fucking works?
             # when this shit is not wrapped around shit, it is working.
             import sys
             print("____", file=sys.stderr)
@@ -776,7 +787,7 @@ class Lazy(Object):
                 elem, checkExpression=True, skipAssertions=False
             )  # will wrap everything.
         else:
-            elem = showStackTrace(elem)
+            elem = showStackTrace(elem, disable_showstack=self.disable_showstack)
         if self.mreader:
             self.counter += 1
             self.mreader.counter += 1
