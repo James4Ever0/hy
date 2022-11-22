@@ -9,7 +9,6 @@ from colorama import Fore
 
 from hy import _initialize_env_var
 from hy.errors import HyWrapperError
-from sqlalchemy import false
 
 PRETTY = True
 COLORED = _initialize_env_var("HY_COLORED_AST_OBJECTS", False)
