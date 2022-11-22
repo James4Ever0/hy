@@ -37,7 +37,6 @@ with open("my_bad_code.hy",'r') as f: # the read-many method. what about hy.read
     # functionTrees = getFunctionForms(m,{},None)
     # breakpoint()
 
-
     # import hy.cmdline
     # val = hy.cmdline.hy_eval(m)
 
@@ -47,7 +46,6 @@ with open("my_bad_code.hy",'r') as f: # the read-many method. what about hy.read
     ################EVALUATE THIS THING################
     # that might be another story.
     # for form in m:
-    
                 # do the same thing.
         # finding the appropriate form?
         # print("FORM:", form) # wrong use of macro 'if' will not raise exception for us at this time. only parser error will be raised, like premature input (inbalanced brackets).

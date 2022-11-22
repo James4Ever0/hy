@@ -811,7 +811,7 @@ def hy_eval( # no locals?
     return eval(ast_compile(expr, filename, "eval"), module.__dict__, locals)
 
 
-def hy_compile(
+def hy_compile( # does this fucking work?
     tree,
     module,
     root=ast.Module,

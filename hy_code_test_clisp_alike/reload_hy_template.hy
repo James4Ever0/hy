@@ -2,6 +2,9 @@
 
 ;; how to reload this definition? parse the definition? transform this shit into ast?
 
+(print "SHIT! WTF IS GOING ON?")
+(print "SHIT! WTF IS GOING ON?")
+
 ;; HyASTCompiler?
 ;; retrieve this thing. use this thing!
 ;; what if you are using some unknown macros?
@@ -18,7 +21,7 @@
     (print)
     ;; how the fuck you retrieve this shit.
     (print "MY STACK?" myStack) ;; i guess this stack is not good.
-    (print)
+    (print) ;; can you retrieve module information from either class definition or function definition? let's use simple python code to find out.
     ;; (print (dir func)) ;; this is a function. maybe async?
     ;; ['__annotations__', '__call__', '__class__', '__closure__', '__code__', '__defaults__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__get__', '__getattribute__', '__globals__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__kwdefaults__', '__le__', '__lt__', '__module__', '__name__', '__ne__', '__new__', '__qualname__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__']
     (print "___________")
@@ -28,8 +31,8 @@
     (print func.__name__ func.__module__ func.__code__) ; seek for name this damn function.
     ;; this is the damn name. but how to seek for this function?
     ;; check the damn definition.
-    (defn inner_func
-        [#* args #** kwargs]
+    ;; why not fucking works?
+    (defn inner_func [ #* args #** kwargs ] ;; does not fucking work?
         (print "executing code")
         (func #* args #** kwargs) ;; remove this decorator when running, please.
         ;; oh really?

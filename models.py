@@ -758,7 +758,7 @@ class Lazy(Object):
             if self.protect_toplevel:
                 print("TOPLEVEL ENABLED", file=sys.stderr)
                 elem = myTryExceptMacro(
-                    elem, checkExpression=True, skipAssertions=False
+                    elem, checkExpression=True, skipAssertions=False, topLevel=True
                 )  # will wrap everything.
             else:
                 # toplevel is not enabled. it is raised.
@@ -784,7 +784,7 @@ class Lazy(Object):
         if self.protect_toplevel:
             print("TOPLEVEL ENABLED", file=sys.stderr)
             elem = myTryExceptMacro(
-                elem, checkExpression=True, skipAssertions=False
+                elem, checkExpression=True, skipAssertions=False, topLevel=True
             )  # will wrap everything.
         else:
             elem = showStackTrace(elem, disable_showstack=self.disable_showstack)

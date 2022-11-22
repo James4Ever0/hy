@@ -7,7 +7,7 @@ def showStackTrace(myExpression, disable_showstack=False):  # warning! please do
     # only triggered when toplevel protection is disabled.
     # let's fuck this up...
     if disable_showstack:
-        return myExpression
+        return myExpression # for whatever reason this shit need to deal with.
     baseExpression = E(
         [S("try"), myExpression]
         + [
@@ -67,6 +67,17 @@ def showStackTrace(myExpression, disable_showstack=False):  # warning! please do
     baseExpression._end_line = myExpression._end_line
     return baseExpression
 
+def checkBlacklist(myExpression, blacklist=[S('unpack-iterable'), S('unpack-mapping')]):
+    if type(myExpression) == E:
+        try:
+            firstSym = myExpression[0]
+            if firstSym in blacklist:
+                return False
+        except:
+            pass
+        return True
+    return False
+
 
 def checkAuthenticTryExcept(myExpression, signature="mySignature"):
     sig_try, sig_authentic = False, False
@@ -102,6 +113,12 @@ def myTryExceptMacro(
     # what is the damn attribute of this damn shit?
     # test if this is the damn thing.
     # this is expression in deed.
+    # this will check if this is 
+    if not topLevel:
+        sig_blacklist_passed = checkBlacklist(myExpression)
+        if not sig_blacklist_passed:
+            return myExpression
+
     if checkExpression:
         sigs = checkAuthenticTryExcept(myExpression, signature=signature)
         if all(sigs):
