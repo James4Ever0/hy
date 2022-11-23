@@ -262,11 +262,13 @@ class HyReader(Reader):
                         if not self.disable_reloading:
                             isDefnode, hasDeclist=checkDefnode(model)
                             if isDefnode:
+                                print('### defnode found ###')
                                 if hasDeclist:
                                     hasReloading=checkReloading(model)
                                 else:
                                     hasReloading=False
                                     #insert the fucking decorator list
+                                print('has reloading?', hasReloading)
                                 if not hasReloading:
                                     model=addReloadingDecorator(model,hasDeclist=hasDeclist)
 
