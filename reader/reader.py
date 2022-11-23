@@ -72,6 +72,7 @@ class Reader(metaclass=ReaderMeta):
 
         self.ends_ident = set(self.NON_IDENT)
         self.reader_table = self.DEFAULT_TABLE.copy()
+        self.disable_reloading=False
 
     def _set_source(self, stream=None, filename=None): # this is initialization.
         if filename is not None:

@@ -33,7 +33,6 @@ from hy.macros import enable_readers, require, require_reader
 from hy.reader import mangle, read_many
 from hy.reader.exceptions import PrematureEndOfInput
 from hy.reader.hy_reader import HyReader
-from sqlalchemy import false
 
 sys.last_type = None
 sys.last_value = None
@@ -532,6 +531,12 @@ def cmdline_handler(scriptname, argv): # run a single file?
     # hey you need to disable my security protocol.
 
     defs = [
+dict(
+            name=["-R"],
+            action="store_true",
+            help="disable automatic insertion of reloading decorator"
+        ),
+
         dict(
             name=["-T"],
             action="store_true",
@@ -669,6 +674,9 @@ def cmdline_handler(scriptname, argv): # run a single file?
     #     if opt in options:
     from hy.config import config
     #         argv.insert(0, f'-{opt}')
+    if 'R' in options:
+        config['disable-reloading']=True
+
     if 'T' in options:
         config['toplevel']=False
 
@@ -867,6 +875,12 @@ def hy2py_main(): # this is hy2py, not hy!
             action="store_true",
             help="Disable toplevel showstack"
     )
+    parser.add_argument("--no-reloading",
+            "-R",
+            action="store_true",
+            help="Disable reloading decorator insertion"
+    )
+
     parser.add_argument(
             "--no-line-by-line-try-except",
             "-L", # maybe this shit has been removed.
@@ -897,9 +911,27 @@ def hy2py_main(): # this is hy2py, not hy!
 
     import hy.models
     import io
+
     protect_toplevel = True if (not (options.no_toplevel_try_except == True)) else False
     temaps = {} if (not (options.no_line_by_line_try_except == True)) else None
     disable_showstack = True if options.no_showstack else False
+    disable_reloading= True if options.no_reloading else False
+
+    from hy.config import config
+    if options.no_reloading:
+        config['disable-reloading']=True
+
+    if options.no_toplevel_try_except:
+        config['toplevel']=False
+
+    if options.no_line_by_line_try_except:
+        config['line-by-line']=False
+    
+    if options.no_showstack:
+        config['disable-showstack']=True
+
+
+
     # let's see what the fuck is going on?
     # print(dir(options))
     print("TOPLEVEL?", protect_toplevel, file=sys.stderr)
@@ -908,7 +940,7 @@ def hy2py_main(): # this is hy2py, not hy!
     # breakpoint()
     mstream = io.StringIO(source)
     hst = hy.models.Lazy( # when did you do this shit?
-        printing_source(read_many(source, filename, skip_shebang=True)), filename = filename, stream=mstream, protect_toplevel=protect_toplevel, temaps = temaps, disable_showstack = disable_showstack
+        printing_source(read_many(source, filename, skip_shebang=True)), filename = filename, stream=mstream, protect_toplevel=protect_toplevel, temaps = temaps, disable_showstack = disable_showstack, disable_reloading=disable_reloading
     )
     hst.source = source
     hst.filename = filename

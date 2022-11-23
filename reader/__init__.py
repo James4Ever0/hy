@@ -49,16 +49,20 @@ def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
     # print("SYS_ARGV:", sys.argv)
     # print("CONFIG?", config)
     disable_showstack = config['disable-showstack']
+    disable_reloading = config['disable-reloading']
     # breakpoint()
 
     m = hy.models.Lazy(
-        (reader or HyReader()).parse(stream, filename),
+        (reader or HyReader()).parse(stream, filename,
+        disable_reloading=disable_reloading
+            ),
         stream=stream,
         filename=filename,
         skip_shebang=skip_shebang,
         temaps=temaps,
         protect_toplevel=protect_toplevel,
-        disable_showstack=disable_showstack
+        disable_showstack=disable_showstack,
+        disable_reloading=disable_reloading
     )
     m.source = source  # how is this done? applied source and filename?
     m.filename = filename

@@ -125,7 +125,7 @@ class HyReader(Reader):
             return self.prefixed_string('"', ident)
         return symbol_like(ident, reader=self)
 
-    def parse(self, stream, filename=None):
+    def parse(self, stream, filename=None,disable_reloading=False):
         """Yields all `hy.models.Object`'s in `source`
 
         Additionally exposes `self` as ``hy.&reader`` during read/compile time.
@@ -137,6 +137,8 @@ class HyReader(Reader):
                 Filename to use for error messages. If `None` then previously
                 set filename is used.
         """
+        self.disable_reloading=disable_reloading
+        # acts like some sort of override. 
         self._set_source(stream, filename)
         rname = mangle("&reader")
         old_reader = getattr(hy, rname, None)
@@ -232,13 +234,20 @@ class HyReader(Reader):
                 # you shall not do anything about that. only if it hits toplevel.
                 # because these data structures may fuck up, hidden inside some normal expressions.
                 import hy.models
-                from hy.debugger import checkAuthenticTryExcept
+                from hy.debugger import (
+                        checkAuthenticTryExcept,
+                        checkReloading,
+                        addReloadingDecorator,
+                        checkDefnode
+                        )
                 from hy.utils import (
                     my_max,
                     my_min,
                     my_a_greater_than_b,
                     my_a_within_b,  # not identical! not overlap! but within!
                 )
+
+                defsyms=[hy.models.Symbol(n) for n in ['defn','defclass']]
 
                 if type(self.temaps) == dict:  # if set to None, no shit is done.
                     if type(model) == hy.models.Expression:  # maybe this is not right.
@@ -248,6 +257,19 @@ class HyReader(Reader):
                         # try_except_check
                         # you may need to check if you are inside this thing.
                         # check start and end.
+
+                        # before you do anything about try-except wrappers, do shit about reloading decorator.
+                        if not self.disable_reloading:
+                            isDefnode, hasDeclist=checkDefnode(model)
+                            if isDefnode:
+                                if hasDeclist:
+                                    hasReloading=checkReloading(model)
+                                else:
+                                    hasReloading=False
+                                    #insert the fucking decorator list
+                                if not hasReloading:
+                                    model=addReloadingDecorator(model,hasDeclist=hasDeclist)
+
                         sig_try, sig_authentic = checkAuthenticTryExcept(model)
                         if (
                             self.temaps == {}

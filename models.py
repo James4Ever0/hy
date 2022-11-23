@@ -642,7 +642,8 @@ class Tuple(Sequence):
 _wrappers[Tuple] = recwrap(Tuple)
 _wrappers[tuple] = recwrap(Tuple)
 
-from hy.debugger import myTryExceptMacro, showStackTrace
+from hy.debugger import myTryExceptMacro, showStackTrace, importReloading
+import sys
 
 class Lazy(Object):
     """
@@ -659,16 +660,21 @@ class Lazy(Object):
         skip_shebang=False,
         protect_toplevel=True, # set to False when "-T" in sys.argv
         temaps={}, # set it to None when you have "-L" flag in sys.argv
-        disable_showstack=False
+        disable_showstack=False,
+        disable_reloading=False
     ):
         super().__init__()
         import sys
-        if any([(a in sys.argv) for a in ["--no-line-by-line-try-except",'-L']]):
+        from hy.config import config
+        if (not config['line-by-line']) or any([(a in sys.argv) for a in ["--no-line-by-line-try-except",'-L']]):
             temaps = None
-        if any([(a in sys.argv) for a in ['-T','--no-toplevel-try-except']]):
+        if (not config['toplevel']) or any([(a in sys.argv) for a in ['-T','--no-toplevel-try-except']]):
             protect_toplevel = False
-        if any([(a in sys.argv) for a in ['-K','--no-show-stack']]):
+        if (config['disable-showstack']) or any([(a in sys.argv) for a in ['-K','--no-show-stack']]):
             disable_showstack = True
+        if (config['disable-reloading']) or any([(a in sys.argv) for a in ['-R','--no-reloading']]):
+            disable_reloading=True
+        self.disable_reloading=disable_reloading
         self.disable_showstack = disable_showstack
         self._gen1 = gen # are you sure this fucking works?
         # you may need three generators.
@@ -690,7 +696,7 @@ class Lazy(Object):
         self.mstream = StringIO(self.source)
         # get the try-except ranges right fucking here.
         if self.temaps == {}:
-            print("____scan twice?____")
+            print("____scan twice?____",file=sys.stderr)
             # do it here?
             self.mstream2 = StringIO(self.source)
 
@@ -721,7 +727,7 @@ class Lazy(Object):
             self.mreader = HyReader(temaps=self.temaps)
             self._gen = self.mreader.parse(self.mstream, self.filename)
         else:
-            print("____not going to scan twice.____")
+            print("____not going to scan twice.____",file=sys.stderr)
             self.mreader = None
             self._gen = gen # what is this fucking generator?
             # self.mreader = HyReader(temaps = None) # fuck?
@@ -737,6 +743,7 @@ class Lazy(Object):
         self.counter = 0
         # how to parse it twice?
         self.protect_toplevel = protect_toplevel
+        self.imported_reloading=False
 
     def __iter__(self):
         import sys
@@ -751,6 +758,11 @@ class Lazy(Object):
             # if type(elem) != Expression: #wrap every shit into try-except?
             # how to forgive code inside try...except?
             # you shall preprocess this shit. for debugging, let's stop using protect_toplevel
+            if self.counter ==0:
+                if not self.disable_reloading:
+                    if not self.imported_reloading:
+                        elem=importReloading(elem)
+                        self.imported_reloading=True
 
             # analyze this shit again. PLEASE?
             # re-enable this after you are done with temaps.
@@ -775,11 +787,14 @@ class Lazy(Object):
                 self.mreader.counter += 1
         # yield from self._gen
         # wtf is this yield from?
+    def procelem(self, elem):
 
-    def __next__(self):
-        ## what is this shitty next?
-        import sys
-        elem = self._gen.__next__() # what the fuck is this next?
+        if self.counter ==0:
+            if not self.disable_reloading:
+                if not self.imported_reloading:
+                    elem=importReloading(elem)
+                    self.imported_reloading=True
+
         if self.protect_toplevel:
             print("TOPLEVEL ENABLED", file=sys.stderr)
             elem = myTryExceptMacro(
@@ -790,4 +805,10 @@ class Lazy(Object):
         if self.mreader:
             self.counter += 1
             self.mreader.counter += 1
+        return elem
+    def __next__(self):
+        ## what is this shitty next?
+        import sys
+        elem = self._gen.__next__() # what the fuck is this next?
+        elem=self.procelem(elem)
         return elem
