@@ -642,7 +642,7 @@ class Tuple(Sequence):
 _wrappers[Tuple] = recwrap(Tuple)
 _wrappers[tuple] = recwrap(Tuple)
 
-from hy.debugger import myTryExceptMacro, showStackTrace, importReloading
+from hy.debugger import myTryExceptMacro, showStackTrace, importReloading, stripTryExcept
 import sys
 
 class Lazy(Object):
@@ -773,6 +773,7 @@ class Lazy(Object):
             if self.protect_toplevel:
                 if self.debug:
                     print("TOPLEVEL ENABLED", file=sys.stderr)
+                elem = stripTryExcept(elem)
                 elem = myTryExceptMacro(
                     elem, checkExpression=True, skipAssertions=False, topLevel=True
                 )  # will wrap everything.

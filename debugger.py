@@ -243,7 +243,11 @@ def checkBlacklist(
         S("unpack-mapping"),
         # S('break'), S('continue'),
         S("except"),
+        S("quasiquote"),
+        S("defmacro"),
+        S("unquote"),
         S("finally"),
+        S("annotate"),
     ],
 ):
     if type(myExpression) == E:
@@ -268,6 +272,12 @@ def checkAuthenticTryExcept(myExpression, signature="mySignature"):
         except:
             pass
     return sig_try, sig_authentic
+
+def stripTryExcept(exp):
+    s0,s1=checkAuthenticTryExcept(exp)
+    if s0 and s1:
+        return exp[1]
+    return exp
 
 
 # if without toplevel protection, we must trace this shit.
@@ -335,7 +345,7 @@ def myTryExceptMacro(
     b_false = S("False")
     b_true = S("True")
     s_null = STR("")
-    s0_leager = STR("=> ")
+    s0_leager = STR("D> ")
     s1_leager = STR("... ")
     mcond_0 = []
     mcond_1 = []

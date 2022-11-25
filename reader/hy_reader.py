@@ -238,7 +238,8 @@ class HyReader(Reader):
                         checkAuthenticTryExcept,
                         checkReloading,
                         addReloadingDecorator,
-                        checkDefnode
+                        checkDefnode,
+                        checkBlacklist
                         )
                 from hy.utils import (
                     my_max,
@@ -279,8 +280,7 @@ class HyReader(Reader):
                         if (
                             self.temaps == {}
                         ):  # if not empty or None, we do not do shit.
-                            if sig_try:
-                                if not sig_authentic:
+                            if (sig_try and (not sig_authentic)) or (not checkBlacklist(model)):
                                     modelInfos = {
                                         "start": (model.start_line, model.start_column),
                                         "end": (model.end_line, model.end_column),
