@@ -355,7 +355,11 @@ def myTryExceptMacro(
     mfirstsym = None
     try:
         mfirstsym = myExpression[0]
-        # disable this option for good.
+        # disable this option for good?
+        # you need to know if you are in a loop or not.
+        # using similar strategy like the try...except trick?
+        # signal passed to this function.
+        # but i do need to know if we are really in such a loop and we can somehow break from it, by knowing the exact char ranges?
         # this is shit.
         #        if mfirstsym in [S("continue"), S("break")]:
         #            mcontinue = hy.gensym()
@@ -521,6 +525,8 @@ def myTryExceptMacro(
             E(
                 [
                     S("try"),
+                    # maybe you should reconsider?
+                    # for shorter expressions?
                     # disable retry. this is pure shit
                     #                    E(
                     #                        [
