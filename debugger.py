@@ -326,7 +326,8 @@ def myTryExceptMacro(
 
     minput = hy.gensym()
     moutput = hy.gensym()
-    mretry = hy.gensym()
+#    mretry = hy.gensym()
+# this retry will surely fuck everything up, making it non-linear.
     hytree = hy.gensym()
     leager = hy.gensym()
     sym_none = S("None")
@@ -334,61 +335,65 @@ def myTryExceptMacro(
     b_true = S("True")
     s_null = STR("")
     s0_leager = STR("=> ")
+    s1_leager = STR("... ")
     mcond_0 = []
     mcond_1 = []
     mcond = []
     mbanners = [
-        STR("SKIP (continue execution, value as None)"),
-        STR("RETRY (retry statement)"),
-        STR("RAISE (raise hy.HE exception)"),
-        STR("CONT CONTINUE (continue execution with last stored value)"),
+            STR(":R1 SKIP (continue execution, value as None)"),
+#        STR("RETRY (retry statement)"),
+STR(":R2 RAISE (raise hy.HE exception)"),
+STR(":R3 CONT CONTINUE (continue execution with last stored value)"),
     ]
 
     mfirstsym = None
     try:
         mfirstsym = myExpression[0]
-        if mfirstsym in [S("continue"), S("break")]:
-            mcontinue = hy.gensym()
-            mbreak = hy.gensym()
-            mcond_0 = [
-                E([S("setv"), mcontinue, b_false]),
-                E([S("setv"), mbreak, b_false]),
-            ]
-            mcond_1 = [
-                E([S("when"), mcontinue, E([S("continue")])]),
-                E([S("when"), mbreak, E([S("break")])]),
-            ]
-            mcond = [
-                E(
-                    [
-                        S("when"),
-                        E(
-                            [
-                                S("="),
-                                E([S("get"), hytree, I(0)]),
-                                L([E([S("quote"), S("continue")])]),
-                            ]
-                        ),
-                        E([S("setv"), mcontinue, b_true]),
-                        E([S("break")]),
-                    ]
-                ),
-                E(
-                    [
-                        S("when"),
-                        E(
-                            [
-                                S("="),
-                                E([S("get"), hytree, I(0)]),
-                                L([E([S("quote"), S("break")])]),
-                            ]
-                        ),
-                        E([S("setv"), mbreak, b_true]),
-                        E([S("break")]),
-                    ]
-                ),
-            ]
-        elif mfirstsym == S("return"):
+        # disable this option for good.
+        # this is shit.
+        #        if mfirstsym in [S("continue"), S("break")]:
+        #            mcontinue = hy.gensym()
+        #            mbreak = hy.gensym()
+        #            mcond_0 = [
+        #                E([S("setv"), mcontinue, b_false]),
+        #                E([S("setv"), mbreak, b_false]),
+        #            ]
+        #            mcond_1 = [
+        #                E([S("when"), mcontinue, E([S("continue")])]),
+        #                E([S("when"), mbreak, E([S("break")])]),
+        #            ]
+        #            mcond = [
+        #                E(
+        #                    [
+        #                        S("when"),
+        #                        E(
+        #                            [
+        #                                S("="),
+        #                                E([S("get"), hytree, I(0)]),
+        #                                L([E([S("quote"), S("continue")])]),
+        #                            ]
+        #                        ),
+        #                        E([S("setv"), mcontinue, b_true]),
+        #                        E([S("break")]),
+        #                    ]
+        #                ),
+        #                E(
+        #                    [
+        #                        S("when"),
+        #                        E(
+        #                            [
+        #                                S("="),
+        #                                E([S("get"), hytree, I(0)]),
+        #                                L([E([S("quote"), S("break")])]),
+        #                            ]
+        #                        ),
+        #                        E([S("setv"), mbreak, b_true]),
+        #                        E([S("break")]),
+        #                    ]
+        #                ),
+        #            ]
+        if mfirstsym == S("return"):
+            # elif mfirstsym == S("return"):
             msx = hy.gensym()
             mcond = [
                 E(
@@ -510,21 +515,22 @@ def myTryExceptMacro(
             E(
                 [
                     S("try"),
-                    E(
-                        [
-                            S("when"),
-                            mretry,
-                            E([S("setv"), mretry, b_false]),
-                            E([S("setv"), moutput, myExpression]),
-                            E([S("break")]),
-                        ]
-                    ),
+                    #disable retry.
+#                    E(
+#                        [
+#                            S("when"),
+#                            mretry,
+#                            E([S("setv"), mretry, b_false]),
+#                            E([S("setv"), moutput, myExpression]),
+#                            E([S("break")]),
+#                        ]
+#                    ),
                     E([S("+="), minput, E([S("input"), leager])]),
                     E(
                         [  # just a damn tree
                             S("setv"),
-                            hytree,
-                            E([S("hy.read"), minput]),
+                            hytree,  # this is important.
+                            E([S("hy.read_clean"), minput]),
                         ]
                     ),
                     E(
@@ -532,9 +538,13 @@ def myTryExceptMacro(
                             S("when"),
                             E(
                                 [
-                                    S("="),
+                                    S('in'),
                                     E([S("type"), hytree]),
+                                    L([
                                     S("hy.models.Symbol"),
+                                    S('hy.models.Keyword')
+                                    ]
+                                    )
                                 ]
                             ),
                             E(
@@ -569,7 +579,10 @@ def myTryExceptMacro(
                                         [
                                             S("in"),
                                             hytree,
-                                            L([E([S("quote"), S("SKIP")])]),
+                                            L([
+                                                E([S("quote"), S("SKIP")]),
+                                                E([S("quote"), K("R1")]),
+                                                ]),
                                         ]
                                     ),
                                     E([S("setv"), moutput, sym_none]),
@@ -587,6 +600,7 @@ def myTryExceptMacro(
                                                 [
                                                     E([S("quote"), S("CONT")]),
                                                     E([S("quote"), S("CONTINUE")]),
+                                                E([S("quote"), K("R3")]),
                                                 ]
                                             ),
                                         ]
@@ -594,6 +608,20 @@ def myTryExceptMacro(
                                     E([S("break")]),
                                 ]
                             ),
+#                            E(
+#                                [
+#                                    S("when"),
+#                                    E(
+#                                        [
+#                                            S("in"),
+#                                            hytree,
+#                                            L([E([S("quote"), S("RETRY")])]),
+#                                        ]
+#                                    ),
+#                                    E([S("setv"), mretry, b_true]),
+#                                    E([S("continue")]),
+#                                ]
+#                            ),
                             E(
                                 [
                                     S("when"),
@@ -601,21 +629,11 @@ def myTryExceptMacro(
                                         [
                                             S("in"),
                                             hytree,
-                                            L([E([S("quote"), S("RETRY")])]),
-                                            E([S("setv"), mretry, b_true]),
-                                            E([S("continue")]),
-                                        ]
-                                    ),
-                                ]
-                            ),
-                            E(
-                                [
-                                    S("when"),
-                                    E(
-                                        [
-                                            S("in"),
-                                            hytree,
-                                            L([E([S("quote"), S("RAISE")])]),
+                                            L([
+                                                E([S("quote"), S("RAISE")]),
+
+                                                E([S("quote"), K("R2")]),
+                                                ]),
                                         ]
                                     ),
                                     E(
@@ -717,7 +735,7 @@ def myTryExceptMacro(
             E([S("setv"), minput, s_null]),
             E([S("setv"), moutput, sym_none]),
             E([S("setv"), leager, s0_leager]),
-            E([S("setv"), mretry, b_false]),
+            #E([S("setv"), mretry, b_false]),
         ]
         + mcond_0
         + [E([S("print"), mbanner]) for mbanner in mbanners]

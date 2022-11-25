@@ -259,16 +259,19 @@ class HyReader(Reader):
                         # check start and end.
 
                         # before you do anything about try-except wrappers, do shit about reloading decorator.
+                        import sys
                         if not self.disable_reloading:
                             isDefnode, hasDeclist=checkDefnode(model)
                             if isDefnode:
-                                print('### defnode found ###')
+                                if self.debug:
+                                    print('### defnode found ###',file=sys.stderr)
                                 if hasDeclist:
                                     hasReloading=checkReloading(model)
                                 else:
                                     hasReloading=False
                                     #insert the fucking decorator list
-                                print('has reloading?', hasReloading)
+                                if self.debug:
+                                    print('has reloading?', hasReloading,file=sys.stderr)
                                 if not hasReloading:
                                     model=addReloadingDecorator(model,hasDeclist=hasDeclist)
 
@@ -353,7 +356,7 @@ class HyReader(Reader):
                                     "end": (model.end_line, model.end_column),
                                 }
                                 mtryexcept_ranges = self.temaps.get(self.counter, [])
-                                showinfo=False
+                                showinfo=self.debug
                                 if showinfo:
                                     print('....')
                                     print('mcounter')

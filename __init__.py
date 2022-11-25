@@ -20,6 +20,7 @@ hy.importer._inject_builtins()
 
 _jit_imports = dict(
     read="hy.reader",
+#    read_clean="hy.reader.read_clean",
     read_many="hy.reader",
     mangle="hy.reader",
     unmangle="hy.reader",
@@ -35,6 +36,7 @@ _jit_imports = dict(
 # according to my knowledge, hy.read is different from hy.read-many. but why the fuck it won't execute?
 
 from hy.debugger import HyTryExceptException as HE
+from hy.reader import read_clean
 
 
 def __getattr__(k):

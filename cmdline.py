@@ -836,7 +836,7 @@ def hyc_main(): # this is to compile hy.
 
 
 # entry point for cmd line script "hy2py"
-def hy2py_main(): # this is hy2py, not hy!
+def hy2py_main(debug=False): # this is hy2py, not hy!
     options = dict(
         prog="hy2py",
         usage="%(prog)s [options] [FILE]",
@@ -934,8 +934,9 @@ def hy2py_main(): # this is hy2py, not hy!
 
     # let's see what the fuck is going on?
     # print(dir(options))
-    print("TOPLEVEL?", protect_toplevel, file=sys.stderr)
-    print("TEMAPS?", temaps, file=sys.stderr)
+    if debug:
+        print("TOPLEVEL?", protect_toplevel, file=sys.stderr)
+        print("TEMAPS?", temaps, file=sys.stderr)
     # 'no_line_by_line_try_except', 'no_toplevel_try_except
     # breakpoint()
     mstream = io.StringIO(source)

@@ -60,9 +60,10 @@ def loader_module_obj(loader):
             del sys.modules[loader.name]
 
 
-def _hy_code_from_file(filename, loader_type=None):
-    print("LOADING HY CODE FROM FILE", filename, file=sys.stderr)
-    print("LOADER:", loader_type, file=sys.stderr) #hyloader? what is hy loader?
+def _hy_code_from_file(filename, loader_type=None,debug=False):
+    if debug:
+        print("LOADING HY CODE FROM FILE", filename, file=sys.stderr)
+        print("LOADER:", loader_type, file=sys.stderr) #hyloader? what is hy loader?
     # damn. is imporing from file possible?
     # print('loading file:', filename)
     # it is not loading module.
@@ -70,7 +71,8 @@ def _hy_code_from_file(filename, loader_type=None):
     full_fname = os.path.abspath(filename)
     fname_path, fname_file = os.path.split(full_fname)
     modname = os.path.splitext(fname_file)[0]
-    print("MODNAME: ", modname, file=sys.stderr)
+    if debug:
+        print("MODNAME: ", modname, file=sys.stderr)
     sys.path.insert(0, fname_path)
     try:
         if loader_type is None:
@@ -78,7 +80,8 @@ def _hy_code_from_file(filename, loader_type=None):
         else:
             loader = loader_type(modname, full_fname) # excuse me what the fuck is this loader?
         code = loader.get_code(modname) # how do you get code without being parsed first? there is expression.
-        print("LOADED CODE:", code, file=sys.stderr) # this is the code object. probably compiled.
+        if debug:
+            print("LOADED CODE:", code, file=sys.stderr) # this is the code object. probably compiled.
     except:
         raise
     finally:
@@ -87,8 +90,9 @@ def _hy_code_from_file(filename, loader_type=None):
     return code
 
 
-def _get_code_from_file(run_name, fname=None, hy_src_check=lambda x: x.endswith(".hy")):
-    print("GET CODE FROM FILE:", run_name, fname, file=sys.stderr)
+def _get_code_from_file(run_name, fname=None, hy_src_check=lambda x: x.endswith(".hy"), debug=False):
+    if debug:
+        print("GET CODE FROM FILE:", run_name, fname, file=sys.stderr)
     # where do you import another hy file?
     # print('are you running get code from file?', run_name) # frame is called __main__
     # print('filename',fname)
@@ -141,10 +145,11 @@ def _could_be_hy_src(filename):
     )
 
 
-def _hy_source_to_code(self, data, path, _optimize=-1):
+def _hy_source_to_code(self, data, path, _optimize=-1,debug=False):
     # shit. are you sure this will work?
     # import python libraries? binary librarires? builtin? stub files?
-    print("_HY_SOURCE_TO_CODE:", data, path, file=sys.stderr)
+    if debug:
+        print("_HY_SOURCE_TO_CODE:", data, path, file=sys.stderr)
     # seems working flawlessly, but without access to source code.
     # data is binary string from some source file.
     # if this shit goes wrong, better reload the file from disk?
@@ -169,13 +174,15 @@ def _hy_source_to_code(self, data, path, _optimize=-1):
             # transform hy_tree here? where the fuck the hy_tree is coming from?
             data = hy_compile(hy_tree, module) # this compile can go wrong. or not?
             # how the fuck you can handle this shit?
-            print("HY COMPILED DATA:", file=sys.stderr) # this is ast module object.
+            if debug:
+                print("HY COMPILED DATA:", file=sys.stderr) # this is ast module object.
             print(data, file=sys.stderr)
             # but it must then go wrong with data.
     try:
         msource= _py_source_to_code(self, data, path, _optimize=_optimize)
-        print("compiled ast from hy:")
-        print(msource)
+        if debug:
+            print("compiled ast from hy:",file=sys.stderr)
+            print(msource,file=sys.stderr)
     except:
         #import traceback
         #traceback.print_exc()

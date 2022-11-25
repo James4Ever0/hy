@@ -661,7 +661,8 @@ class Lazy(Object):
         protect_toplevel=True, # set to False when "-T" in sys.argv
         temaps={}, # set it to None when you have "-L" flag in sys.argv
         disable_showstack=False,
-        disable_reloading=False
+        disable_reloading=False,
+        debug=False
     ):
         super().__init__()
         import sys
@@ -680,6 +681,7 @@ class Lazy(Object):
         # you may need three generators.
         # you may obtain the same shit.
         self.stream = stream
+        self.debug=debug
         self.filename = filename
         self.temaps = temaps  # setting it to None will disable tryexcept protection in fine-grained level. not recommended though.
         self.skip_shebang = skip_shebang
@@ -696,7 +698,8 @@ class Lazy(Object):
         self.mstream = StringIO(self.source)
         # get the try-except ranges right fucking here.
         if self.temaps == {}:
-            print("____scan twice?____",file=sys.stderr)
+            if self.debug:
+                print("____scan twice?____",file=sys.stderr)
             # do it here?
             self.mstream2 = StringIO(self.source)
 
@@ -727,7 +730,8 @@ class Lazy(Object):
             self.mreader = HyReader(temaps=self.temaps)
             self._gen = self.mreader.parse(self.mstream, self.filename)
         else:
-            print("____not going to scan twice.____",file=sys.stderr)
+            if self.debug:
+                print("____not going to scan twice.____",file=sys.stderr)
             self.mreader = None
             self._gen = gen # what is this fucking generator?
             # self.mreader = HyReader(temaps = None) # fuck?
@@ -767,7 +771,8 @@ class Lazy(Object):
             # analyze this shit again. PLEASE?
             # re-enable this after you are done with temaps.
             if self.protect_toplevel:
-                print("TOPLEVEL ENABLED", file=sys.stderr)
+                if self.debug:
+                    print("TOPLEVEL ENABLED", file=sys.stderr)
                 elem = myTryExceptMacro(
                     elem, checkExpression=True, skipAssertions=False, topLevel=True
                 )  # will wrap everything.
@@ -776,16 +781,18 @@ class Lazy(Object):
                 elem = showStackTrace(elem, disable_showstack=self.disable_showstack) # are you fucking sure this fucking works?
             # when this shit is not wrapped around shit, it is working.
             import sys
-            print("____", file=sys.stderr)
-            elem_str=str(elem)
-            elem_str=elem_str.replace('hy.models.Expression(','E(')
-            elem_str=elem_str.replace('hy.models.List(','L(')
-            elem_str=elem_str.replace('hy.models.Symbol(','S(')
-            elem_str=elem_str.replace('hy.models.String(','STR(')
-            elem_str=elem_str.replace('hy.models.Integer(','I(')
-            elem_str=elem_str.replace('hy.models.Keyword(','K(')
-            print("<FINAL FORM>:", elem_str, file=sys.stderr)
-            print("____", file=sys.stderr)
+            debug=False
+            if self.debug:
+                print("____", file=sys.stderr)
+                elem_str=str(elem)
+                elem_str=elem_str.replace('hy.models.Expression(','E(')
+                elem_str=elem_str.replace('hy.models.List(','L(')
+                elem_str=elem_str.replace('hy.models.Symbol(','S(')
+                elem_str=elem_str.replace('hy.models.String(','STR(')
+                elem_str=elem_str.replace('hy.models.Integer(','I(')
+                elem_str=elem_str.replace('hy.models.Keyword(','K(')
+                print("<FINAL FORM>:", elem_str, file=sys.stderr)
+                print("____", file=sys.stderr)
 
             yield elem
             # and do something afterwards?
@@ -803,7 +810,8 @@ class Lazy(Object):
                     self.imported_reloading=True
 
         if self.protect_toplevel:
-            print("TOPLEVEL ENABLED", file=sys.stderr)
+            if self.debug:
+                print("TOPLEVEL ENABLED", file=sys.stderr)
             elem = myTryExceptMacro(
                 elem, checkExpression=True, skipAssertions=False, topLevel=True
             )  # will wrap everything.

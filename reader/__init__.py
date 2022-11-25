@@ -7,10 +7,18 @@ import hy.models
 from .hy_reader import HyReader
 from .mangling import mangle, unmangle
 
-__all__ = ["mangle", "unmangle", "read", "read_many"]
+__all__ = [
+        "mangle", 
+        "unmangle", 
+        "read", 
+        "read_many",
+        "read_clean"
+        ]
 
 
-def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
+def read_many(
+    stream, filename="<string>", reader=None, skip_shebang=False, mconfig=None
+):
     """Parse all the Hy source code in ``stream``, which should be a textual file-like
     object or a string. ``filename``, if provided, is used in error messages. If no
     ``reader`` is provided, a new :class:`hy.reader.hy_reader.HyReader` object is created.
@@ -44,38 +52,43 @@ def read_many(stream, filename="<string>", reader=None, skip_shebang=False):
     # how to generate code from this shit?
     from hy.config import config
 
-    temaps = {} if (config["line-by-line"]) else None
-    protect_toplevel = True if (config["toplevel"]) else False
+    if mconfig is None:
+        mconfig = config
+    elif isinstance(mconfig, dict):
+        mconfig = config | mconfig
+
+    temaps = {} if (mconfig["line-by-line"]) else None
+    protect_toplevel = True if (mconfig["toplevel"]) else False
     # print("SYS_ARGV:", sys.argv)
     # print("CONFIG?", config)
-    disable_showstack = config['disable-showstack']
-    disable_reloading = config['disable-reloading']
+    disable_showstack = mconfig["disable-showstack"]
+    disable_reloading = mconfig["disable-reloading"]
     # breakpoint()
 
     m = hy.models.Lazy(
-        (reader or HyReader()).parse(stream, filename,
-        disable_reloading=disable_reloading
-            ),
+        (reader or HyReader()).parse(
+            stream, filename, disable_reloading=disable_reloading
+        ),
         stream=stream,
         filename=filename,
         skip_shebang=skip_shebang,
         temaps=temaps,
         protect_toplevel=protect_toplevel,
         disable_showstack=disable_showstack,
-        disable_reloading=disable_reloading
+        disable_reloading=disable_reloading,
     )
     m.source = source  # how is this done? applied source and filename?
     m.filename = filename
     return m
 
 
-def read(stream, filename=None, reader=None):
+def read(stream, filename=None, reader=None, mconfig=None):
     """Like :hy:func:`hy.read-many`, but only one form is read, and shebangs are
     forbidden. The model corresponding to this specific form is returned, or, if there
     are no forms left in the stream, :class:`EOFError` is raised. ``stream.pos`` is left
     where it was immediately after the form."""
 
-    it = read_many(stream, filename, reader)
+    it = read_many(stream, filename, reader, mconfig=mconfig)
     try:
         m = next(it)  # just one single form.
     except StopIteration:
@@ -83,3 +96,15 @@ def read(stream, filename=None, reader=None):
     else:
         m.source, m.filename = it.source, it.filename
         return m
+
+
+def read_clean(stream, filename=None, reader=None):
+    # has default mconfig.
+    mconfig = {
+        "toplevel": False,
+        "line-by-line": False,
+        "disable-showstack": True,
+        "disable-reloading": True,
+    }
+    val = read(stream, filename, reader, mconfig)
+    return val
