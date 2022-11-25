@@ -403,6 +403,7 @@ def myTryExceptMacro(
         #                ),
         #            ]
         if mfirstsym == S("return"):
+            # likely, we can find out the region which we can return things from, in function definitions, if we are using some "yield" or "return" keyword (by default)
             # elif mfirstsym == S("return"):
             msx = hy.gensym()
             mcond = [
