@@ -2,6 +2,10 @@ import hy.models
 
 from hy.models import Symbol as S, Expression as E, List as L, String as STR
 
+
+class HyTryExceptException(Exception):
+    pass
+
 def importReloading(myExpression):
     try:
         if isinstance(myExpression,E):
@@ -104,7 +108,6 @@ def addReloadingDecorator(myExpression,hasDeclist=False):# has it or not we will
     myExpression=insertReloadingDecorator(myExpression)
     return myExpression
 
-
 def showStackTrace(myExpression, disable_showstack=False):  # warning! please do copy the line metadata.
     # only triggered when toplevel protection is disabled.
     # let's fuck this up...
@@ -169,7 +172,9 @@ def showStackTrace(myExpression, disable_showstack=False):  # warning! please do
     baseExpression._end_line = myExpression._end_line
     return baseExpression
 
-def checkBlacklist(myExpression, blacklist=[S('unpack-iterable'), S('unpack-mapping')]):
+def checkBlacklist(myExpression, blacklist=[S('unpack-iterable'), S('unpack-mapping'), 
+    #S('break'), S('continue'), 
+    S('except'), S('finally')]):
     if type(myExpression) == E:
         try:
             firstSym = myExpression[0]
@@ -203,7 +208,7 @@ def myTryExceptMacro(
         topLevel=False,  # indicate this is toplevel try-except. no more reprievment for skipAssertions. # you may rewrap this thing.
         # but it fucking have no use! only use is for skipAssertions!
         allowed_exception_symbols=[
-            S("SystemExit")
+            S("SystemExit"), S('hy.HE')
             ],  # make sure these errors are builtin. PLEASE!
         skipAssertions=False,  # to make it right?
         # why skip assertions? no you should not skip assertions? who the fuck is calling us?
@@ -255,12 +260,18 @@ def myTryExceptMacro(
                         STR(signature),
                         E([S("import"), S("traceback")]),
                         E([S("traceback.print_exc")]),
-                        E([S("print"), STR("just some error let's keep going")]),
-                        STR("USE THIS VALUE INSTEAD"),
+                        #E([S("print"), STR("just some error let's keep going")]),
+                        E([S("print"), STR("Entering debug REPL")]),
+                        #STR("USE THIS VALUE INSTEAD"),
                         ]
                     )
                 ]
             )
+    # mloop=E([S('while'), S('True') ])
+    # how to re-execute?
+
+    # wrap inside a do statement.
+    # make sure the variable identifier is unique somehow?
     val = E(baseExpression)  # no value returned?
     # print('just before we return this evil thing...')
     # breakpoint()

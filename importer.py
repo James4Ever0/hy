@@ -79,6 +79,8 @@ def _hy_code_from_file(filename, loader_type=None):
             loader = loader_type(modname, full_fname) # excuse me what the fuck is this loader?
         code = loader.get_code(modname) # how do you get code without being parsed first? there is expression.
         print("LOADED CODE:", code, file=sys.stderr) # this is the code object. probably compiled.
+    except:
+        raise
     finally:
         sys.path.pop(0)
 
@@ -169,8 +171,18 @@ def _hy_source_to_code(self, data, path, _optimize=-1):
             # how the fuck you can handle this shit?
             print("HY COMPILED DATA:", file=sys.stderr) # this is ast module object.
             print(data, file=sys.stderr)
+            # but it must then go wrong with data.
+    try:
+        msource= _py_source_to_code(self, data, path, _optimize=_optimize)
+        print("compiled ast from hy:")
+        print(msource)
+    except:
+        #import traceback
+        #traceback.print_exc()
+        #print("exception when compile ast from hy")
+        raise
 
-    return _py_source_to_code(self, data, path, _optimize=_optimize)
+    return msource
 
 
 importlib.machinery.SourceFileLoader.source_to_code = _hy_source_to_code
@@ -224,7 +236,10 @@ def retryLoading(func):
                     raise Exception(f'decline request for reloading file: {val}')
     return innerFunction
 
+# this might be problem. fuck!
+
 runhy._get_code_from_file = partial(retryLoading(_get_code_from_file), hy_src_check=_could_be_hy_src) # how to try_catch this thing? and more importantly, how to do "REPL"?
+#runhy._get_code_from_file=_get_code_from_file
 
 del sys.modules["runpy"]
 

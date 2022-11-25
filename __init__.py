@@ -34,6 +34,8 @@ _jit_imports = dict(
 )
 # according to my knowledge, hy.read is different from hy.read-many. but why the fuck it won't execute?
 
+from hy.debugger import HyTryExceptException as HE
+
 
 def __getattr__(k):
     if k == "pyops":
