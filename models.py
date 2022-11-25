@@ -777,7 +777,14 @@ class Lazy(Object):
             # when this shit is not wrapped around shit, it is working.
             import sys
             print("____", file=sys.stderr)
-            print("<FINAL FORM>:", elem, file=sys.stderr)
+            elem_str=str(elem)
+            elem_str=elem_str.replace('hy.models.Expression(','E(')
+            elem_str=elem_str.replace('hy.models.List(','L(')
+            elem_str=elem_str.replace('hy.models.Symbol(','S(')
+            elem_str=elem_str.replace('hy.models.String(','STR(')
+            elem_str=elem_str.replace('hy.models.Integer(','I(')
+            elem_str=elem_str.replace('hy.models.Keyword(','K(')
+            print("<FINAL FORM>:", elem_str, file=sys.stderr)
             print("____", file=sys.stderr)
 
             yield elem
