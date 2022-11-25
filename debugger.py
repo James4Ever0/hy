@@ -276,7 +276,8 @@ def myTryExceptMacro(
     signature="mySignature",
     checkExpression=False,
     # skipAssertions = False
-    topLevel=False,  # indicate this is toplevel try-except. no more reprievment for skipAssertions. # you may rewrap this thing.
+    topLevel=False,  # indicate this is toplevel try-except. no more reprievment for skipAssertions. also do catch hy.HE for whatever reason.
+    # you may rewrap this thing.
     # but it fucking have no use! only use is for skipAssertions!
     allowed_exception_symbols=[
         S("SystemExit"),
@@ -326,8 +327,8 @@ def myTryExceptMacro(
 
     minput = hy.gensym()
     moutput = hy.gensym()
-#    mretry = hy.gensym()
-# this retry will surely fuck everything up, making it non-linear.
+    #    mretry = hy.gensym()
+    # this retry will surely fuck everything up, making it non-linear.
     hytree = hy.gensym()
     leager = hy.gensym()
     sym_none = S("None")
@@ -340,11 +341,16 @@ def myTryExceptMacro(
     mcond_1 = []
     mcond = []
     mbanners = [
-            STR(":R1 SKIP (continue execution, value as None)"),
-#        STR("RETRY (retry statement)"),
-STR(":R2 RAISE (raise hy.HE exception)"),
-STR(":R3 CONT CONTINUE (continue execution with last stored value)"),
-    ]
+        STR(":R1 SKIP (continue execution, value as None)"),
+        #        STR("RETRY (retry statement)"),
+        STR(":R2 CONT CONTINUE (continue execution with last stored value)"),
+    ] + (
+        []
+        if topLevel
+        else [
+            STR(":R3 RAISE (raise hy.HE exception)"),
+        ]
+    )
 
     mfirstsym = None
     try:
@@ -515,16 +521,16 @@ STR(":R3 CONT CONTINUE (continue execution with last stored value)"),
             E(
                 [
                     S("try"),
-                    #disable retry.
-#                    E(
-#                        [
-#                            S("when"),
-#                            mretry,
-#                            E([S("setv"), mretry, b_false]),
-#                            E([S("setv"), moutput, myExpression]),
-#                            E([S("break")]),
-#                        ]
-#                    ),
+                    # disable retry. this is pure shit
+                    #                    E(
+                    #                        [
+                    #                            S("when"),
+                    #                            mretry,
+                    #                            E([S("setv"), mretry, b_false]),
+                    #                            E([S("setv"), moutput, myExpression]),
+                    #                            E([S("break")]),
+                    #                        ]
+                    #                    ),
                     E([S("+="), minput, E([S("input"), leager])]),
                     E(
                         [  # just a damn tree
@@ -538,13 +544,9 @@ STR(":R3 CONT CONTINUE (continue execution with last stored value)"),
                             S("when"),
                             E(
                                 [
-                                    S('in'),
+                                    S("in"),
                                     E([S("type"), hytree]),
-                                    L([
-                                    S("hy.models.Symbol"),
-                                    S('hy.models.Keyword')
-                                    ]
-                                    )
+                                    L([S("hy.models.Symbol"), S("hy.models.Keyword")]),
                                 ]
                             ),
                             E(
@@ -579,10 +581,12 @@ STR(":R3 CONT CONTINUE (continue execution with last stored value)"),
                                         [
                                             S("in"),
                                             hytree,
-                                            L([
-                                                E([S("quote"), S("SKIP")]),
-                                                E([S("quote"), K("R1")]),
-                                                ]),
+                                            L(
+                                                [
+                                                    E([S("quote"), S("SKIP")]),
+                                                    E([S("quote"), K("R1")]),
+                                                ]
+                                            ),
                                         ]
                                     ),
                                     E([S("setv"), moutput, sym_none]),
@@ -600,7 +604,7 @@ STR(":R3 CONT CONTINUE (continue execution with last stored value)"),
                                                 [
                                                     E([S("quote"), S("CONT")]),
                                                     E([S("quote"), S("CONTINUE")]),
-                                                E([S("quote"), K("R3")]),
+                                                    E([S("quote"), K("R2")]),
                                                 ]
                                             ),
                                         ]
@@ -608,43 +612,50 @@ STR(":R3 CONT CONTINUE (continue execution with last stored value)"),
                                     E([S("break")]),
                                 ]
                             ),
-#                            E(
-#                                [
-#                                    S("when"),
-#                                    E(
-#                                        [
-#                                            S("in"),
-#                                            hytree,
-#                                            L([E([S("quote"), S("RETRY")])]),
-#                                        ]
-#                                    ),
-#                                    E([S("setv"), mretry, b_true]),
-#                                    E([S("continue")]),
-#                                ]
-#                            ),
-                            E(
-                                [
-                                    S("when"),
-                                    E(
-                                        [
-                                            S("in"),
-                                            hytree,
-                                            L([
-                                                E([S("quote"), S("RAISE")]),
-
-                                                E([S("quote"), K("R2")]),
-                                                ]),
-                                        ]
-                                    ),
-                                    E(
-                                        [
-                                            S("raise"),
-                                            E([S("hy.HE"), STR("REPL Exception")]),
-                                        ]
-                                    ),
-                                ]
-                            ),
+                            #                            E(
+                            #                                [
+                            #                                    S("when"),
+                            #                                    E(
+                            #                                        [
+                            #                                            S("in"),
+                            #                                            hytree,
+                            #                                            L([E([S("quote"), S("RETRY")])]),
+                            #                                        ]
+                            #                                    ),
+                            #                                    E([S("setv"), mretry, b_true]),
+                            #                                    E([S("continue")]),
+                            #                                ]
+                            #                            ),
                         ]
+                        + (
+                            []
+                            if topLevel
+                            else [
+                                E(
+                                    [
+                                        S("when"),
+                                        E(
+                                            [
+                                                S("in"),
+                                                hytree,
+                                                L(
+                                                    [
+                                                        E([S("quote"), S("RAISE")]),
+                                                        E([S("quote"), K("R3")]),
+                                                    ]
+                                                ),
+                                            ]
+                                        ),
+                                        E(
+                                            [
+                                                S("raise"),
+                                                E([S("hy.HE"), STR("REPL Exception")]),
+                                            ]
+                                        ),
+                                    ]
+                                ),
+                            ]
+                        )
                     ),
                     E(
                         [
@@ -735,7 +746,7 @@ STR(":R3 CONT CONTINUE (continue execution with last stored value)"),
             E([S("setv"), minput, s_null]),
             E([S("setv"), moutput, sym_none]),
             E([S("setv"), leager, s0_leager]),
-            #E([S("setv"), mretry, b_false]),
+            # E([S("setv"), mretry, b_false]),
         ]
         + mcond_0
         + [E([S("print"), mbanner]) for mbanner in mbanners]
