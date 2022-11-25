@@ -7,3 +7,4 @@
 (print "VALUE?" (shitfunc)) ;; this will fuck up. please disable all security protocol.
 
 ;; hy -L -T -K simple_reload.hy
+(print "shit")

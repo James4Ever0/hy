@@ -176,7 +176,8 @@ def _hy_source_to_code(self, data, path, _optimize=-1,debug=False):
             # how the fuck you can handle this shit?
             if debug:
                 print("HY COMPILED DATA:", file=sys.stderr) # this is ast module object.
-            print(data, file=sys.stderr)
+                print(data, file=sys.stderr)
+                #this is shit.
             # but it must then go wrong with data.
     try:
         msource= _py_source_to_code(self, data, path, _optimize=_optimize)
