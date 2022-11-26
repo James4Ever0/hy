@@ -2,6 +2,8 @@
 
 ## Installation
 
+It is tested on `hy v0.25`.
+
 Original version of hy can be found [here](https://github.com/hylang/hy). This repo is a patch for hy, so you would install hy via pip, then run `python3 patch_code_helper.py` after modified your hy installation path in that file.
 
 You have to install `parse` from pip, also [reloading](https://github.com/James4Ever0/reloading).
