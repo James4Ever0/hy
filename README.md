@@ -99,3 +99,5 @@ You don't need to contribute unless you are using it! Clone/fork this repo, foll
 I wrote some tests under `./hy_code_test_clisp_alike`. These tests are rudimentary but maybe you can take a look to see what I mean, really.
 
 If you want to fix bugs from this modded hy, first discover them first by writing programs in hy. You can check [docs for hy](https://docs.hylang.org/en/stable) and [docs for hyrule](https://hyrule.readthedocs.io/en/master/index.html) for reference. Once you've discovered a bug, post the issue here. If you want to fix it yourself, please read my modded files (very helpful, because you are smart)!
+
+In case you find more issues and want to post them to [nelean](https://github.com/James4Ever0/nelean) or [reloading](https://github.com/James4Ever0/reloading), feel free to do so!
