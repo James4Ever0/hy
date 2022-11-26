@@ -1,4 +1,4 @@
-# Patch for hy lang, a lisp embedded in python
+# Resumeable exception patch for hy lang, a lisp embedded in python
 
 ## Installation
 
