@@ -88,6 +88,8 @@ git push origin master
 =>
 ```
 
+## Want more?
+
 ### How did you do that?
 
 I changed hy expressions during parsing. When a qualified expression comes through, I wrap it into a `try...except` expression with a REPL loop, which is not triggered unless an exception is raised. It provides different options (skip, continue, raise `hy.HE` exceptions which will be raised for sure and nothing can stop it unless wrapped in top-level `try...except` or inside a `reloading` decorator)  and capabilities (whether able to evaluate return/yield/yield-from/break/continue statements) depending on different situations (whether inside function definitions/loops). It will first scan the hy code, mark regions having different situations, then act differently. Note that line-by-line `try...except` will not wrap any statements inside existing `try...except` expressions, and this is expected, as the coder expects this statement to handle exceptions by itself unless the exception is raised nevertheless (uncaught exception).
