@@ -444,7 +444,7 @@ def myTryExceptMacro(
                                     [
                                         S("lfor"),
                                         msx,
-                                        E([S("cut"), hytree, K("start"), I(1)]),
+                                        E([S("cut"), hytree, I(1), sym_none]),
                                         E([S("hy.eval"), msx]),
                                     ]
                                 ),
@@ -480,7 +480,7 @@ def myTryExceptMacro(
                                     [
                                         S("lfor"),
                                         msx,
-                                        E([S("cut"), hytree, K("start"), I(1)]),
+                                        E([S("cut"), hytree, I(1), sym_none]),
                                         E([S("hy.eval"), msx]),
                                     ]
                                 ),
