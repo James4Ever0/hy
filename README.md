@@ -6,7 +6,7 @@ Original version of hy can be found [here](https://github.com/hylang/hy). This r
 
 You have to install `parse` from pip, also [reloading](https://github.com/James4Ever0/reloading).
 
-Also, a nice hy code formatter [nelean](https://github.com/James4Ever0/nelean) compatible with this modified version of hy.
+Also, I write a nice hy code formatter [nelean](https://github.com/James4Ever0/nelean) depending on this modified version of hy.
 
 If you want hy syntax highlighting: [vim-hy](https://github.com/hylang/vim-hy)
 
