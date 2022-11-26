@@ -245,6 +245,9 @@ def checkBlacklist(
         S("except"),
         S("quasiquote"),
         S("defmacro"),
+        S('unquote-splice'),
+        S('else'), # follow the damn doc?
+        S('except*'),
         S("unquote"),
         S("finally"),
         S("annotate"),
