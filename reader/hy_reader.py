@@ -294,9 +294,14 @@ class HyReader(Reader):
                                     )
                                     insertionPoint = 0
                                     deleteIndexs = []
-                                    for index, mrange in self.tryexcept_ranges:
+                                    for index, mrange in enumerate(self.tryexcept_ranges):
                                         # merge? continue searching for potential merges in sorted array.
+                                        #try:
                                         mls, mle = getFlat(mrange)
+                                        #except:
+                                        #    print(dir(mrange))
+                                        #    print(mrange)
+                                        #    breakpoint()
                                         cls, cle = getFlat(modelInfos)
                                         # compare min or max.
                                         commonls = my_max(mls, cls)
