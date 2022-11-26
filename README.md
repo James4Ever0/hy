@@ -14,11 +14,11 @@ If you want hy syntax highlighting: [vim-hy](https://github.com/hylang/vim-hy)
 
 ### Why the modification?
 
-I want a language capable of catching uncaught exceptions (borrowed and improved from common lisp), hot-reloading function definitions, and that's what I've achieved so far. I'm pretty sure these functionalities is not precluded in most programming languages, so I do it myself, for you.
+I want a language capable of catching uncaught exceptions (a feature borrowed and improved from common lisp), hot-reloading function definitions (from `reloading`), and this project is what I've achieved so far. I'm pretty sure these functionalities are not precluded in most programming languages, so I do it myself, for you.
 
 Since most people don't understand the fuzz, here we have some [detailed discussion](https://discuss.python.org/t/exec-with-return-keyword/19916/14) for your bed time reading.
 
-I introduced four flags to both `hy` and `hy2py` executables:
+I introduce four flags to both `hy` and `hy2py` executables:
 
 ```
 -R
@@ -31,7 +31,7 @@ I introduced four flags to both `hy` and `hy2py` executables:
 	disable line-by-line try-except
 ```
 
-As you can see it, these four behaviors are turned on by default unless you explicitly disable any of them.
+As you can see it, these four behaviors are turned on by default unless you explicitly disable any of them by passing these flags like: `hy -R -T -K -L <filepath>`.
 
 ### Which files have been patched?
 
@@ -54,9 +54,9 @@ If you want to dig into this project yourself, better check these files and diff
 
 ### How does it work?
 
-I miss common lisp dearly (by `clisp --on-error debug`), so I do similar things to hy.
+I miss common lisp dearly (by `clisp --on-error debug <filename>`), so I do similar things to hy.
 
-In this modded hy intepreter, when you have exceptions, you can fix it right at the spot. Take a look for yourself ("justpush.sh" is a file you can find under this repo):
+In this modded hy intepreter, when you have exceptions, you can fix it right at the spot. Take a look for yourself (`"justpush.sh"` is a file you can find under this repo):
 
 ```
 Hy 0.25.0 using CPython(main) 3.10.4 on Linux
@@ -92,7 +92,11 @@ git push origin master
 
 ### How did you do that?
 
-I changed hy expressions during parsing. When a qualified expression comes through, I wrap it into a `try...except` expression with a REPL loop, which is not triggered unless an exception is raised. It provides different options (skip, continue, raise `hy.HE` exceptions which will be raised for sure and nothing can stop it unless wrapped in top-level `try...except` or inside a `reloading` decorator)  and capabilities (whether able to evaluate return/yield/yield-from/break/continue statements) depending on different situations (whether inside function definitions/loops). It will first scan the hy code, mark regions having different situations, then act differently. Note that line-by-line `try...except` will not wrap any statements inside existing `try...except` expressions, and this is expected, as the coder expects this statement to handle exceptions by itself unless the exception is raised nevertheless (uncaught exception).
+I change hy expressions during parsing. When a qualified expression comes through, I wrap it into a `try...except` expression with a REPL loop, which is not triggered unless an exception is raised.
+
+This REPL provides different options (skip, continue, raise `hy.HE` exception (which will be raised for sure and nothing can stop it unless wrapped in top-level `try...except` or inside a `reloading` decorator))  and capabilities (whether able to evaluate return/yield/yield-from/break/continue statements) depending on different situations (whether inside function definitions/loops).
+
+It will first scan the hy code, mark different regions according to different situations, then act correspondingly. Note that line-by-line `try...except` will not wrap any statements inside existing `try...except` expressions, and this behavior is expected, as the coder expects an `try...except` statement to handle exceptions by itself unless the exception is raised nevertheless, which creates an uncaught exception.
 
 ### How would I contribute?
 
@@ -103,3 +107,9 @@ I wrote some tests under `./hy_code_test_clisp_alike`. These tests are rudimenta
 If you want to fix bugs from this modded hy, first discover them first by writing programs in hy. You can check [docs for hy](https://docs.hylang.org/en/stable) and [docs for hyrule](https://hyrule.readthedocs.io/en/master/index.html) for reference. Once you've discovered a bug, post the issue here. If you want to fix it yourself, please read my modded files (very helpful, because you are smart)!
 
 In case you find more issues and want to post them to [nelean](https://github.com/James4Ever0/nelean) or [reloading](https://github.com/James4Ever0/reloading), feel free to do so!
+
+### Future plans
+
+- [ ] Add indicator to values fetched from debug REPL, so you can say `CONT <value number>` to selectively return that value instead of last value.
+
+- [ ] Ananlyze loop/function define statement scopes and add new options to REPL within these scopes accordingly.
