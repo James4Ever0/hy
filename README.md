@@ -115,3 +115,5 @@ In case you find more issues and want to post them to [nelean](https://github.co
 - [ ] Add indicator to values fetched from debug REPL, so you can say `CONT <value number>` to selectively return that value instead of the last value.
 
 - [ ] Ananlyze loop/function define statement scopes and add new options to REPL within these scopes accordingly.
+
+- [ ] Save user inputed statements in debug REPL to replace original statement at runtime.
